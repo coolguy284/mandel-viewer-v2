@@ -56,11 +56,52 @@
         align-items: start;
         flex-wrap: wrap;
         font-family: Arial;
+        font-size: 1.1vw;
         color: white;
+        gap: 1vw;
       }
       
       #settings_header {
         align-self: center;
+        font-size: 2vw;
+      }
+      
+      #close_btn {
+        position: absolute;
+        right: 1vw;
+        top: 1vw;
+      }
+      
+      .flex-horizontal {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1vw;
+      }
+      
+      .flex-vertical {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: 0.2vw;
+      }
+      
+      .flex-vertical-2 {
+        gap: 0.4vw;
+      }
+      
+      select, input[type = text], input[type = number], button {
+        background-color: black;
+        color: white;
+        font-size: 1.3vw;
+        border: 0.2vw solid white;
+        border-radius: 0.5vw;
+        padding: 0.3vw;
+      }
+      
+      input[type = checkbox] {
+        width: 1.7vw;
+        height: 1.7vw;
       }
     </style>
   </head>
@@ -74,50 +115,76 @@
     <div id = 'settings' style = 'display: none;'>
       <h1 id = 'settings_header'>Settings</h1>
       
-      <label for = 'settings_x'>X</label>
-      <input type = 'text' id = 'settings_x' onchange = 'processUpdatedSettings();'>
+      <div class = 'flex-horizontal'>
+        <div class = 'flex-vertical'>
+          <label for = 'settings_x'>X</label>
+          <input type = 'text' id = 'settings_x' onchange = 'processUpdatedSettings();'>
+        </div>
+        
+        <div class = 'flex-vertical'>
+          <label for = 'settings_y'>Y</label>
+          <input type = 'text' id = 'settings_y' onchange = 'processUpdatedSettings();'>
+        </div>
+        
+        <div class = 'flex-vertical'>
+          <label for = 'settings_scale'>Scale</label>
+          <input type = 'text' id = 'settings_scale' onchange = 'processUpdatedSettings();'>
+        </div>
+      </div>
       
-      <label for = 'settings_y'>Y</label>
-      <input type = 'text' id = 'settings_y' onchange = 'processUpdatedSettings();'>
+      <div class = 'flex-horizontal'>
+        <div class = 'flex-vertical'>
+          <label for = 'settings_color_pallete'>Color Pallete</label>
+          <select id = 'settings_color_pallete' onchange = 'processUpdatedSettings();'>
+            <option value = '0'>Blue</option>
+            <option value = '1'>Green</option>
+            <option value = '2'>Red</option>
+            <option value = '3'>Rainbow</option>
+          </select>
+        </div>
+        
+        <div class = 'flex-vertical'>
+          <label for = 'settings_log_render'>Log Render</label>
+          <select id = 'settings_log_render' onchange = 'processUpdatedSettings();'>
+            <option value = '0'>None</option>
+            <option value = '1'>Half</option>
+            <option value = '2'>Full</option>
+          </select>
+        </div>
+        
+        <div class = 'flex-vertical flex-vertical-2'>
+          <label for = 'settings_smooth_iteration_count'>Smooth Iteration Count</label>
+          <input type = 'checkbox' id = 'settings_smooth_iteration_count' onchange = 'processUpdatedSettings();'>
+        </div>
+      </div>
       
-      <label for = 'settings_scale'>Scale</label>
-      <input type = 'text' id = 'settings_scale' onchange = 'processUpdatedSettings();'>
+      <div class = 'flex-horizontal'>
+        <div class = 'flex-vertical'>
+          <label for = 'settings_render_method'>Render Method</label>
+          <select id = 'settings_render_method' onchange = 'processUpdatedSettings();'>
+            <option value = '0'>FillRect (TEST)</option>
+            <option value = '1'>CPU</option>
+            <option value = '2'>GPU Shader</option>
+          </select>
+        </div>
+        
+        <div class = 'flex-vertical'>
+          <label for = 'settings_max_iterations'>Max Iterations</label>
+          <input type = 'number' id = 'settings_max_iterations' onchange = 'processUpdatedSettings();'>
+        </div>
+        
+        <div class = 'flex-vertical flex-vertical-2'>
+          <label for = 'settings_inertia'>Inertia</label>
+          <input type = 'checkbox' id = 'settings_inertia' onchange = 'processUpdatedSettings();'>
+        </div>
+        
+        <div class = 'flex-vertical flex-vertical-2'>
+          <label for = 'settings_show_coordinates'>Show Coordinates</label>
+          <input type = 'checkbox' id = 'settings_show_coordinates' onchange = 'processUpdatedSettingsShowCoords();'>
+        </div>
+      </div>
       
-      <label for = 'settings_color_pallete'>Color Pallete</label>
-      <select id = 'settings_color_pallete' onchange = 'processUpdatedSettings();'>
-        <option value = '0'>Blue</option>
-        <option value = '1'>Green</option>
-        <option value = '2'>Red</option>
-        <option value = '3'>Rainbow</option>
-      </select>
-      
-      <label for = 'settings_log_render'>Log Render</label>
-      <select id = 'settings_log_render' onchange = 'processUpdatedSettings();'>
-        <option value = '0'>None</option>
-        <option value = '1'>Half</option>
-        <option value = '2'>Full</option>
-      </select>
-      
-      <label for = 'settings_smooth_iteration_count'>Smooth Iteration Count</label>
-      <input type = 'checkbox' id = 'settings_smooth_iteration_count' onchange = 'processUpdatedSettings();'>
-      
-      <label for = 'settings_render_method'>Render Method</label>
-      <select id = 'settings_render_method' onchange = 'processUpdatedSettings();'>
-        <option value = '0'>FillRect Canvas Test</option>
-        <option value = '1'>JS Calculations</option>
-        <option value = '2'>Shader Calculations</option>
-      </select>
-      
-      <label for = 'settings_max_iterations'>Max Iterations</label>
-      <input type = 'number' id = 'settings_max_iterations' onchange = 'processUpdatedSettings();'>
-      
-      <label for = 'settings_inertia'>Inertia</label>
-      <input type = 'checkbox' id = 'settings_inertia' onchange = 'processUpdatedSettings();'>
-      
-      <label for = 'settings_show_coordinates'>Show Coordinates</label>
-      <input type = 'checkbox' id = 'settings_show_coordinates' onchange = 'processUpdatedSettingsShowCoords();'>
-      
-      <button onclick = 'closeSettings();'>Close</button>
+      <button id = 'close_btn' onclick = 'closeSettings();'>Close</button>
     </div>
     
     <!-- <h1 style = 'position: absolute; left: 50%; top: 18%; color: white; border: 1px solid white;'>ewefwefwe</h1> -->
