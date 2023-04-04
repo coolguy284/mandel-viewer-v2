@@ -64,6 +64,7 @@
         14. remove preventdefault on mousedown, up, move
         15. update log rendering mode
         16. add other color palletes
+        17. esc key to reset position
         touch support
         settings menu
         gpu support
@@ -472,6 +473,27 @@
         
         e.preventDefault();
       }, { passive: false });
+      
+      window.addEventListener('keydown', e => {
+        if (e.keyCode == 27) {
+          // escape key pressed
+          
+          if (INERTIA) {
+            velX = 0;
+            velY = 0;
+            X = 0;
+            Y = 0;
+            SCALE = 4;
+            targetScale = 4;
+          } else {
+            X = 0;
+            Y = 0;
+            SCALE = 4;
+          }
+          
+          render();
+        }
+      });
       
       let movementLoopRunning = false;
       
