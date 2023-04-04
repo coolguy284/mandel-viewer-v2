@@ -7,3 +7,4 @@ let previousMouseDrags = [];
 let logZoomScaleFactor = Math.log(ZOOM_SCALE_FACTOR);
 let ctxType, ctx;
 let shaderProgram, shaderProgramInfo;
+let startingPopupClosed = false;

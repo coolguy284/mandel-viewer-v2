@@ -52,3 +52,9 @@ function closeSettings() {
   
   showSettings();
 }
+
+function closeStartingPopup() {
+  startingPopupClosed = true;
+  
+  starting_popup.style.display = 'none';
+}

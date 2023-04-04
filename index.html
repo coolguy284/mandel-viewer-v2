@@ -15,8 +15,8 @@
     <h1 id = 'coords' style = 'display: none;'>X: 0, Y: 0, Scale: 1</h1>
     <!--<h1 id = 'debug_log' style = ''>debug</h1>-->
     
-    <div id = 'settings' style = 'display: none;'>
-      <h1 id = 'settings_header'>Settings</h1>
+    <div id = 'settings' class = 'popup' style = 'display: none;'>
+      <h1 class = 'popup_header'>Settings</h1>
       
       <div class = 'flex-horizontal'>
         <div class = 'flex-vertical'>
@@ -97,6 +97,14 @@
       </div>
       
       <button id = 'close_btn' onclick = 'closeSettings();'>Close</button>
+    </div>
+    
+    <div id = 'starting_popup' class = 'popup'>
+      <h1 class = 'popup_header'>Mandelbrot Explorer</h1>
+      
+      <p>This page is an exploration app for the fractal called the Mandelbrot Set. To open the settings menu, double click anywhere on screen. To close this window and use the app, click proceed.</p>
+      
+      <button id = 'proceed_btn' onclick = 'closeStartingPopup();'>Proceed</button>
     </div>
     
     <!-- https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context

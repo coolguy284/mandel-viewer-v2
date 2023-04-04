@@ -24,7 +24,7 @@ window.addEventListener('resize', () => {
 
 window.addEventListener('mousedown', e => {
   //debug_log.innerHTML+='<br>mousestart ' + JSON.stringify(touchPoints);
-  if (!SHOW_SETTINGS) {
+  if (!SHOW_SETTINGS && startingPopupClosed) {
     touchPoints.mouse = { x: e.x, y: e.y };
     
     touchEvents.down();
@@ -34,7 +34,7 @@ window.addEventListener('mousedown', e => {
 
 window.addEventListener('mouseup', e => {
   //debug_log.innerHTML+='<br>mouseend ' + JSON.stringify(touchPoints);
-  if (!SHOW_SETTINGS || mouseDown) {
+  if (!SHOW_SETTINGS && startingPopupClosed || mouseDown) {
     delete touchPoints.mouse;
     
     touchEvents.up();
@@ -43,7 +43,7 @@ window.addEventListener('mouseup', e => {
 });
 
 window.addEventListener('mousemove', e => {
-  if (!SHOW_SETTINGS) {
+  if (!SHOW_SETTINGS && startingPopupClosed) {
     if (touchPoints.mouse) {
       touchPoints.mouse.x = e.x;
       touchPoints.mouse.y = e.y;
@@ -56,7 +56,7 @@ window.addEventListener('mousemove', e => {
 });
 
 window.addEventListener('wheel', e => {
-  if (!SHOW_SETTINGS) {
+  if (!SHOW_SETTINGS && startingPopupClosed) {
     events.wheel(e.wheelDelta);
     
     e.preventDefault();
@@ -64,7 +64,7 @@ window.addEventListener('wheel', e => {
 }, { passive: false });
 
 window.addEventListener('keydown', e => {
-  if (!SHOW_SETTINGS && e.keyCode == 27) {
+  if (!SHOW_SETTINGS && startingPopupClosed && e.keyCode == 27) {
     // escape key pressed
     
     events.escapeKey();
@@ -73,7 +73,7 @@ window.addEventListener('keydown', e => {
 
 window.addEventListener('touchstart', e => {
   //debug_log.innerHTML+='<br>touchstart ' + JSON.stringify(touchPoints);
-  if (!SHOW_SETTINGS) {
+  if (!SHOW_SETTINGS && startingPopupClosed) {
     for (let touch of e.changedTouches) {
       touchPoints[touch.identifier] = { x: touch.pageX, y: touch.pageY };
     }
@@ -86,7 +86,7 @@ window.addEventListener('touchstart', e => {
 });
 
 window.addEventListener('touchmove', e => {
-  if (!SHOW_SETTINGS) {
+  if (!SHOW_SETTINGS && startingPopupClosed) {
     for (let touch of e.changedTouches) {
       touchPoints[touch.identifier].px = touchPoints[touch.identifier].x;
       touchPoints[touch.identifier].py = touchPoints[touch.identifier].y;
@@ -102,7 +102,7 @@ window.addEventListener('touchmove', e => {
 
 let touchEndHandler = e => {
   //debug_log.innerHTML+='<br>touchend ' + JSON.stringify(touchPoints);
-  if (!SHOW_SETTINGS || Object.keys(touchPoints).length > 0) {
+  if (!SHOW_SETTINGS && startingPopupClosed || Object.keys(touchPoints).length > 0) {
     for (let touch of e.changedTouches) {
       delete touchPoints[touch.identifier];
     }

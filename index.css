@@ -1,3 +1,11 @@
+button:hover {
+  cursor: pointer;
+}
+
+h1, label {
+  user-select: none;
+}
+
 html, body {
   background: black;
   width: 100%;
@@ -42,7 +50,7 @@ html, body {
   font-size: min(2vh, 2vw);
 }
 
-#settings {
+.popup {
   position: absolute;
   left: 5%;
   top: 8%;
@@ -62,7 +70,7 @@ html, body {
   gap: 1vw;
 }
 
-#settings_header {
+.popup_header {
   align-self: center;
   font-size: 2vw;
 }
@@ -105,4 +113,8 @@ input[type = checkbox] {
   width: 1.7vw;
   height: 1.7vw;
   margin-bottom: 0.38vw;
+}
+
+#proceed_btn {
+  align-self: center;
 }

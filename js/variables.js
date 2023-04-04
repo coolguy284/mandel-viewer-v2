@@ -22,9 +22,9 @@
   21. add basic webgl implementation and fix resizing webgl canvas
   22. gpu support
   23. feature complete the shader
-  localstorage support
-  add starting prompt that explains what site is and that double click for settings menu
+  24. add starting prompt that explains what site is and that double click for settings menu
   
+  localstorage support
   proper webgl canvas resizing
   
   bug when zooming after changing page zoom; zoom is relative to point outside screen (zooming in) or much closer to center (zooming out)
