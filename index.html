@@ -56,10 +56,11 @@
         6. updating header numbers with good precision
         7. normalized iteration count
         8. fix coordinate flip
-        8. inertia on scrolling
-        9. zoom smoothly
-        touch support
-        gpu support
+        9. inertia on scrolling
+        10. fix coordinates becoming NaN on inertia due to velMag being 0 (thus division by 0)
+        11. zoom smoothly
+        12. touch support
+        13. gpu support
         
         bug when zooming after changing page zoom
       */
@@ -68,16 +69,23 @@
       let SMOOTH_ITERS = true;
       let MAX_ITERS = 255;
       let SUBPIXEL_SCALE = 0.5;
+      let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120);
       let INERTIA = true,
-        INERTIA_SLOWDOWN_FACTOR = 0.5 ** (1 / 1000),
-        INERTIA_TEMPORAL_SLOWDOWN_FACTOR = 0.02,
+        INERTIA_SLOWDOWN = 10,
+        INERTIA_FASTSLOWDOWN_TIME_THRESHOLD = 0.8,
+        INERTIA_FASTSLOWDOWN_VEL_THRESHOLD = 3,
+        INERTIA_SLOWDOWN_FACTOR = 0.1,
         INERTIA_THRESHOLD = 1e-6;
+      let PREV_MOUSE_BUFFER_LENGTH = 3, // only used with inertia
+        PREV_MOUSE_BUFFER_TIMESPAN = 100; // only used with inertia
       let X = 0, Y = 0, SCALE = 4;
       
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
-      let velX = 0, velY = 0;
+      let velX = 0, velY = 0, velMag = 0;
+      let targetScale = null;
       let pMouseX = null, pMouseY = null, pTimestamp = null, timeUnclicked = null;
+      let previousMouseDrags = [];
       
       // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
       function getMandelIterct(cx, cy) {
@@ -123,7 +131,7 @@
           let px = Math.floor(i / 4) % width,
             py = Math.floor(i / width / 4);
           let normPx = (px - width / 2) / height,
-            normPy = (py - height / 2) / height;
+            normPy = -(py - height / 2) / height;
           
           let cx, cy;
           
@@ -198,6 +206,15 @@
       window.addEventListener('mouseup', () => {
         if (INERTIA) {
           timeUnclicked = performance.now();
+          let minValidTime = timeUnclicked - PREV_MOUSE_BUFFER_TIMESPAN;
+          
+          let mouseDragSum = previousMouseDrags.filter(x => x[2] > minValidTime).reduce((a, c) => [a[0] + c[0], a[1] + c[1]], [0, 0]);
+          let mouseDrag = previousMouseDrags.length ? [mouseDragSum[0] / previousMouseDrags.length, mouseDragSum[1] / previousMouseDrags.length] : [0, 0];
+          
+          velX = mouseDrag[0];
+          velY = mouseDrag[1];
+          
+          previousMouseDrags.splice(0, Infinity);
         }
         
         mouseDown = false;
@@ -207,19 +224,28 @@
         if (INERTIA) {
           if (mouseDown) {
             velX = e.x - pMouseX;
-            velY = e.y - pMouseY;
+            velY = -e.y + pMouseY;
+            
+            velMag = Math.hypot(velX, velY);
             
             X -= velX / realCanvasHeight * SCALE;
             Y -= velY / realCanvasHeight * SCALE;
-            
-            movementLoop();
           }
           
           pMouseX = e.x;
           pMouseY = e.y;
+          
+          previousMouseDrags.push([velX, velY, performance.now()]);
+          if (previousMouseDrags.length > PREV_MOUSE_BUFFER_LENGTH) {
+            previousMouseDrags.splice(0, 1);
+          }
+          
+          if (mouseDown) {
+            movementLoop();
+          }
         } else {
           if (mouseDown) {
-            let deltaX = e.x - pMouseX, deltaY = e.y - pMouseY;
+            let deltaX = e.x - pMouseX, deltaY = -e.y + pMouseY;
             
             X -= deltaX / realCanvasHeight * SCALE;
             Y -= deltaY / realCanvasHeight * SCALE;
@@ -234,10 +260,10 @@
       
       window.addEventListener('wheel', e => {
         if (INERTIA) {
-          let scaleFactor = 0.9966268260763764 ** e.wheelDelta;
+          let scaleFactor = ZOOM_SCALE_FACTOR ** e.wheelDelta;
           
           let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
-          let cyCursor = Y + (pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+          let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
           
           let cxDiff = cxCursor - X;
           let cyDiff = cyCursor - Y;
@@ -255,10 +281,10 @@
           velX = 0;
           velY = 0;
         } else {
-          let scaleFactor = 0.9966268260763764 ** e.wheelDelta;
+          let scaleFactor = ZOOM_SCALE_FACTOR ** e.wheelDelta;
           
           let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
-          let cyCursor = Y + (pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+          let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
           
           let cxDiff = cxCursor - X;
           let cyDiff = cyCursor - Y;
@@ -287,10 +313,24 @@
           Y -= velY / realCanvasHeight * SCALE;
         
           if (pTimestamp) {
-            let timeSinceUnclicked = timestamp - timeUnclicked;
+            let lastFrameTime = (timestamp - pTimestamp) / 1000;
+            let timeSinceUnclicked = (timestamp - timeUnclicked) / 1000;
             
-            velX *= INERTIA_SLOWDOWN_FACTOR ** ((timestamp - pTimestamp) * (timeSinceUnclicked * INERTIA_TEMPORAL_SLOWDOWN_FACTOR + 1));
-            velY *= INERTIA_SLOWDOWN_FACTOR ** ((timestamp - pTimestamp) * (timeSinceUnclicked * INERTIA_TEMPORAL_SLOWDOWN_FACTOR + 1));
+            let newVelMag;
+            if (timeSinceUnclicked > INERTIA_FASTSLOWDOWN_TIME_THRESHOLD && velMag > INERTIA_FASTSLOWDOWN_VEL_THRESHOLD) {
+              // bigger for fast speeds
+              newVelMag = Math.max((velMag - INERTIA_SLOWDOWN * lastFrameTime * 7) * INERTIA_SLOWDOWN_FACTOR ** lastFrameTime, 0);
+            } else {
+              // linear for slow speeds
+              newVelMag = Math.max(velMag - INERTIA_SLOWDOWN * lastFrameTime, 0);
+            }
+            
+            let slowdownFactor = velMag != 0 ? newVelMag / velMag : 0;
+            
+            velX *= slowdownFactor;
+            velY *= slowdownFactor;
+            
+            velMag = newVelMag;
           }
         }
         
