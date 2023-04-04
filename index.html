@@ -61,32 +61,33 @@
         11. make event handlers prevent default action (primarily for scrolling if it is embedded in an iframe)
         12. add random fuzzing / artifical banding support
         13. zoom smoothly
-        14. remove preventdefault on mousedown and up
+        14. remove preventdefault on mousedown, up, move
+        15. 
         touch support
         gpu support
         
         bug when zooming after changing page zoom
       */
       let RENDER_METHOD = 1; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl shader
-      let LOG_RENDER = false;
-      let SMOOTH_ITERS = true,
+      let LOG_RENDER = false; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once
+      let SMOOTH_ITERS = true, // calculate fractional iteration count and color smoothly
         RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
-        DO_ARTIFICIAL_BANDING = false,
-        ARTIFICIAL_BANDING_FACTOR = 1;
-      let MAX_ITERS = 255;
-      let SUBPIXEL_SCALE = 1;
-      let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120);
-      let INERTIA = true,
-        INERTIA_SLOWDOWN = 10,
-        INERTIA_FASTSLOWDOWN_TIME_THRESHOLD = 0.8,
-        INERTIA_FASTSLOWDOWN_VEL_THRESHOLD = 3,
-        INERTIA_SLOWDOWN_FACTOR = 0.1,
+        DO_ARTIFICIAL_BANDING = false, // quantize iteration count after calculating smooth iteration count, primarily used to test random color fuzzing
+        ARTIFICIAL_BANDING_FACTOR = 1; // factor of quantization, 2 makes color channel even, 3 makes color channel a multiple of 3, etc.
+      let MAX_ITERS = 255; // depth of mandelbrot calculation
+      let SUBPIXEL_SCALE = 1; // default ratio of canvas pixel size to true canvas size, 0 < x < 1 to render faster but more pixelated, x > 1 to supersample and make higher quality image
+      let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120); // amount that image scale is changed per unit of mouse delta (normal scroll is 120 delta)
+      let INERTIA = true, // smooth movement and scroll
+        INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
+        INERTIA_FASTSLOWDOWN_TIME_THRESHOLD = 0.8, // amount of seconds of slow inertia slowdown before fast slowdown begins, must also be moving faster than velocity threshold
+        INERTIA_FASTSLOWDOWN_VEL_THRESHOLD = 3, // pixel speed must be above this value before fast slowdown begins, must also be after the time threshold
+        INERTIA_SLOWDOWN_FACTOR = 0.1, // smaller to slowdown faster in fast slowdown, hard to understand unit so just experiment
         INERTIA_MOVE_THRESHOLD = 1e-6, // minimum pixel velocity of the canvas to perform a move
         INERTIA_ZOOM_FACTOR = 20, // bigger to reach target zoom faster, hard to understand unit so just experiment
         INERTIA_ZOOM_THRESHOLD = 1e-2; // minimum natural log difference between target and current scale to perform a zoom operation
-      let PREV_MOUSE_BUFFER_LENGTH = 3, // only used with inertia
-        PREV_MOUSE_BUFFER_TIMESPAN = 100; // only used with inertia
-      let X = 0, Y = 0, SCALE = 4;
+      let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
+        PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
+      let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
       
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
@@ -375,7 +376,7 @@
               let timeSinceUnclicked =  (timestamp - timeUnclicked) / 1000;
               if (timeSinceUnclicked > INERTIA_FASTSLOWDOWN_TIME_THRESHOLD && velMag > INERTIA_FASTSLOWDOWN_VEL_THRESHOLD) {
                 // bigger for fast speeds
-                newVelMag = Math.max((velMag - INERTIA_SLOWDOWN * lastFrameTime * 7) * INERTIA_SLOWDOWN_FACTOR ** lastFrameTime, 0);
+                newVelMag = Math.max((velMag - INERTIA_SLOWDOWN * lastFrameTime) * INERTIA_SLOWDOWN_FACTOR ** lastFrameTime, 0);
               } else {
                 // linear for slow speeds
                 newVelMag = Math.max(velMag - INERTIA_SLOWDOWN * lastFrameTime, 0);
