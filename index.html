@@ -65,7 +65,7 @@
         15. update log rendering mode
         16. add other color palletes
         17. esc key to reset position
-        touch support
+        18. touch support
         settings menu
         gpu support
         
@@ -365,136 +365,6 @@
         canvas.height = Math.floor(realCanvasHeight * SUBPIXEL_SCALE);
       }
       
-      window.addEventListener('load', () => {
-        resizeCanvas();
-        render();
-      });
-      
-      window.addEventListener('resize', () => {
-        resizeCanvas();
-        render();
-      });
-      
-      window.addEventListener('mousedown', e => {
-        mouseDown = true;
-        
-        pMouseX = e.x;
-        pMouseY = e.y;
-      });
-      
-      window.addEventListener('mouseup', e => {
-        if (INERTIA) {
-          timeUnclicked = performance.now();
-          let minValidTime = timeUnclicked - PREV_MOUSE_BUFFER_TIMESPAN;
-          
-          let mouseDragSum = previousMouseDrags.filter(x => x[2] > minValidTime).reduce((a, c) => [a[0] + c[0], a[1] + c[1]], [0, 0]);
-          let mouseDrag = previousMouseDrags.length ? [mouseDragSum[0] / previousMouseDrags.length, mouseDragSum[1] / previousMouseDrags.length] : [0, 0];
-          
-          velX = mouseDrag[0];
-          velY = mouseDrag[1];
-          
-          previousMouseDrags.splice(0, Infinity);
-        }
-        
-        mouseDown = false;
-      });
-      
-      window.addEventListener('mousemove', e => {
-        if (INERTIA) {
-          if (mouseDown) {
-            velX = e.x - pMouseX;
-            velY = -e.y + pMouseY;
-            
-            velMag = Math.hypot(velX, velY);
-            
-            X -= velX / realCanvasHeight * SCALE;
-            Y -= velY / realCanvasHeight * SCALE;
-          }
-          
-          pMouseX = e.x;
-          pMouseY = e.y;
-          
-          previousMouseDrags.push([velX, velY, performance.now()]);
-          if (previousMouseDrags.length > PREV_MOUSE_BUFFER_LENGTH) {
-            previousMouseDrags.splice(0, 1);
-          }
-          
-          if (mouseDown) {
-            movementLoop();
-          }
-        } else {
-          if (mouseDown) {
-            let deltaX = e.x - pMouseX, deltaY = -e.y + pMouseY;
-            
-            X -= deltaX / realCanvasHeight * SCALE;
-            Y -= deltaY / realCanvasHeight * SCALE;
-            
-            render();
-          }
-          
-          pMouseX = e.x;
-          pMouseY = e.y;
-        }
-      });
-      
-      window.addEventListener('wheel', e => {
-        if (INERTIA) {
-          let scaleFactor = ZOOM_SCALE_FACTOR ** e.wheelDelta;
-          
-          targetScale *= scaleFactor;
-          targetScalePMouseX = pMouseX;
-          targetScalePMouseY = pMouseY;
-          
-          if (!mouseDown) {
-            velX = 0;
-            velY = 0;
-          }
-          
-          movementLoop();
-        } else {
-          let scaleFactor = ZOOM_SCALE_FACTOR ** e.wheelDelta;
-          
-          let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
-          let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
-          
-          let cxDiff = cxCursor - X;
-          let cyDiff = cyCursor - Y;
-          
-          let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
-          let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
-          
-          X += cxScaleDiff;
-          Y += cyScaleDiff;
-          
-          SCALE *= scaleFactor;
-          
-          render();
-        }
-        
-        e.preventDefault();
-      }, { passive: false });
-      
-      window.addEventListener('keydown', e => {
-        if (e.keyCode == 27) {
-          // escape key pressed
-          
-          if (INERTIA) {
-            velX = 0;
-            velY = 0;
-            X = 0;
-            Y = 0;
-            SCALE = 4;
-            targetScale = 4;
-          } else {
-            X = 0;
-            Y = 0;
-            SCALE = 4;
-          }
-          
-          render();
-        }
-      });
-      
       let movementLoopRunning = false;
       
       function movementLoop(timestamp) {
@@ -573,6 +443,158 @@
           requestAnimationFrame(movementLoop);
         }
       }
+      
+      window.addEventListener('load', () => {
+        resizeCanvas();
+        render();
+      });
+      
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        render();
+      });
+      
+      let events = {
+        mouseDown: (x, y) => {
+          mouseDown = true;
+          
+          pMouseX = x;
+          pMouseY = y;
+        },
+        
+        mouseUp: () => {
+          if (INERTIA) {
+            timeUnclicked = performance.now();
+            let minValidTime = timeUnclicked - PREV_MOUSE_BUFFER_TIMESPAN;
+            
+            let mouseDragSum = previousMouseDrags.filter(x => x[2] > minValidTime).reduce((a, c) => [a[0] + c[0], a[1] + c[1]], [0, 0]);
+            let mouseDrag = previousMouseDrags.length ? [mouseDragSum[0] / previousMouseDrags.length, mouseDragSum[1] / previousMouseDrags.length] : [0, 0];
+            
+            velX = mouseDrag[0];
+            velY = mouseDrag[1];
+            
+            previousMouseDrags.splice(0, Infinity);
+          }
+          
+          mouseDown = false;
+        },
+        
+        mouseMove: (x, y) => {
+          if (INERTIA) {
+            if (mouseDown) {
+              velX = x - pMouseX;
+              velY = -y + pMouseY;
+              
+              velMag = Math.hypot(velX, velY);
+              
+              X -= velX / realCanvasHeight * SCALE;
+              Y -= velY / realCanvasHeight * SCALE;
+            }
+            
+            pMouseX = x;
+            pMouseY = y;
+            
+            previousMouseDrags.push([velX, velY, performance.now()]);
+            if (previousMouseDrags.length > PREV_MOUSE_BUFFER_LENGTH) {
+              previousMouseDrags.splice(0, 1);
+            }
+            
+            if (mouseDown) {
+              movementLoop();
+            }
+          } else {
+            if (mouseDown) {
+              let deltaX = x - pMouseX, deltaY = -y + pMouseY;
+              
+              X -= deltaX / realCanvasHeight * SCALE;
+              Y -= deltaY / realCanvasHeight * SCALE;
+              
+              render();
+            }
+            
+            pMouseX = x;
+            pMouseY = y;
+          }
+        },
+        
+        wheel: (wheelDelta) => {
+          if (INERTIA) {
+            let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
+            
+            targetScale *= scaleFactor;
+            targetScalePMouseX = pMouseX;
+            targetScalePMouseY = pMouseY;
+            
+            if (!mouseDown) {
+              velX = 0;
+              velY = 0;
+            }
+            
+            movementLoop();
+          } else {
+            let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
+            
+            let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
+            let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+            
+            let cxDiff = cxCursor - X;
+            let cyDiff = cyCursor - Y;
+            
+            let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
+            let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
+            
+            X += cxScaleDiff;
+            Y += cyScaleDiff;
+            
+            SCALE *= scaleFactor;
+            
+            render();
+          }
+        },
+        
+        escapeKey: () => {
+          if (INERTIA) {
+            velX = 0;
+            velY = 0;
+            X = 0;
+            Y = 0;
+            SCALE = 4;
+            targetScale = 4;
+          } else {
+            X = 0;
+            Y = 0;
+            SCALE = 4;
+          }
+          
+          render();
+        },
+      };
+      
+      window.addEventListener('mousedown', e => {
+        events.mouseDown(e.x, e.y);
+      });
+      
+      window.addEventListener('mouseup', e => {
+        events.mouseUp();
+      });
+      
+      window.addEventListener('mousemove', e => {
+        events.mouseMove(e.x, e.y);
+      });
+      
+      window.addEventListener('wheel', e => {
+        events.wheel(e.wheelDelta);
+        
+        e.preventDefault();
+      }, { passive: false });
+      
+      window.addEventListener('keydown', e => {
+        if (e.keyCode == 27) {
+          // escape key pressed
+          
+          events.escapeKey();
+        }
+      });
     </script>
   </body>
 </html>
