@@ -223,7 +223,7 @@
         19. settings menu
         20. add reset button to settings menu
         21. add basic webgl implementation and fix resizing webgl canvas
-        gpu support
+        22. gpu support
         add starting prompt that explains what site is and that double click for settings menu
         
         proper webgl canvas resizing
@@ -244,7 +244,7 @@
       let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
       
       let RENDER_METHOD = 4; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl test, 3 - webgl shader test, 4 - webgl shader
-      let MAX_ITERS = 255; // depth of mandelbrot calculation
+      let MAX_ITERS = 2048; // depth of mandelbrot calculation
       let ESCAPE_RADIUS = 256.0; // distance beyond which a point is considered escaped from the mandelbrot set
       let INERTIA = true; // smooth movement and scroll
       let SHOW_COORDINATES = false; // whether coordinates are shown in bottom right hand corner
@@ -280,16 +280,16 @@
         void main() {
           gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
         }
-      `, mandelVertShader = `
-        attribute vec4 aVertexPosition;
+      `, mandelVertShader = `#version 300 es
+        in vec4 aVertexPosition;
         uniform mat4 uModelViewMatrix;
         uniform mat4 uProjectionMatrix;
         
         void main() {
           gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
         }
-      `, mandelFragShader = `
-        precision lowp float;
+      `, mandelFragShader = `#version 300 es
+        precision highp float;
         
         uniform vec2 iResolution;
         
@@ -306,6 +306,8 @@
         uniform int randomColorFuzzing;
         uniform int doArtificialBanding;
         uniform int artificialBandingFactor;
+        
+        out vec4 outColor;
         
         int getMandelIterct(float cx, float cy) {
           float qt1 = cx - 0.25;
@@ -324,25 +326,22 @@
           float zx2 = 0.0;
           float zy2 = 0.0;
           
-          int iterCount2 = 0;
+          int iterCount = 0;
           
-          for (int iterCount = 0; iterCount < 65536; iterCount++) {
+          while (zx2 + zy2 < escapeRadius && iterCount < maxIters) {
             zy = (zx + zx) * zy + cy;
             zx = zx2 - zy2 + cx;
             zx2 = zx * zx;
             zy2 = zy * zy;
             
-            if (zx2 + zy2 >= escapeRadius || iterCount >= maxIters) {
-              iterCount2 = iterCount;
-              break;
-            }
+            iterCount++;
           }
           
-          return iterCount2;
+          return iterCount;
         }
         
         void main() {
-          //gl_FragColor = vec4(gl_FragCoord.x / iResolution.x, 1.0, 0.0, 1.0);
+          //outColor = vec4(gl_FragCoord.x / iResolution.x, 1.0, 0.0, 1.0);
           
           float px = gl_FragCoord.x;
           float py = gl_FragCoord.y;
@@ -376,7 +375,7 @@
             }
             
             if (pallete == 0) {
-              gl_FragColor = vec4(0.0, 0.0, processedColorVal, 1.0);
+              outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
             } else if (pallete == 1) {
               
             } else if (pallete == 2) {
@@ -776,7 +775,7 @@
         ctx.uniform1i(shaderProgramInfo.uniformLocations.normalize, SMOOTH_ITERS);
         
         ctx.uniform1i(shaderProgramInfo.uniformLocations.maxIters, MAX_ITERS);
-        ctx.uniform1i(shaderProgramInfo.uniformLocations.escapeRadius, ESCAPE_RADIUS);
+        ctx.uniform1f(shaderProgramInfo.uniformLocations.escapeRadius, ESCAPE_RADIUS);
         
         ctx.uniform1i(shaderProgramInfo.uniformLocations.randomColorFuzzing, RANDOM_COLOR_FUZZING);
         ctx.uniform1i(shaderProgramInfo.uniformLocations.doArtificialBanding, DO_ARTIFICIAL_BANDING);
@@ -873,7 +872,7 @@
                 normalize: ctx.getUniformLocation(shaderProgram, 'normalize'),
                 
                 maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
-                escapeRadius: ctx.getUniformLocation(escapeRadius, 'escapeRadius'),
+                escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
                 
                 randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
                 doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
