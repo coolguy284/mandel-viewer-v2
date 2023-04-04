@@ -68,11 +68,16 @@
       let SMOOTH_ITERS = true;
       let MAX_ITERS = 255;
       let SUBPIXEL_SCALE = 0.5;
+      let INERTIA = true,
+        INERTIA_SLOWDOWN_FACTOR = 0.5 ** (1 / 1000),
+        INERTIA_TEMPORAL_SLOWDOWN_FACTOR = 0.02,
+        INERTIA_THRESHOLD = 1e-6;
       let X = 0, Y = 0, SCALE = 4;
       
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
-      let pMouseX = null, pMouseY = null;
+      let velX = 0, velY = 0;
+      let pMouseX = null, pMouseY = null, pTimestamp = null, timeUnclicked = null;
       
       // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
       function getMandelIterct(cx, cy) {
@@ -191,42 +196,114 @@
       });
       
       window.addEventListener('mouseup', () => {
+        if (INERTIA) {
+          timeUnclicked = performance.now();
+        }
+        
         mouseDown = false;
       });
       
       window.addEventListener('mousemove', e => {
-        if (mouseDown) {
-          let deltaX = e.x - pMouseX, deltaY = e.y - pMouseY;
+        if (INERTIA) {
+          if (mouseDown) {
+            velX = e.x - pMouseX;
+            velY = e.y - pMouseY;
+            
+            X -= velX / realCanvasHeight * SCALE;
+            Y -= velY / realCanvasHeight * SCALE;
+            
+            movementLoop();
+          }
           
-          X -= deltaX / realCanvasHeight * SCALE;
-          Y -= deltaY / realCanvasHeight * SCALE;
+          pMouseX = e.x;
+          pMouseY = e.y;
+        } else {
+          if (mouseDown) {
+            let deltaX = e.x - pMouseX, deltaY = e.y - pMouseY;
+            
+            X -= deltaX / realCanvasHeight * SCALE;
+            Y -= deltaY / realCanvasHeight * SCALE;
+            
+            render();
+          }
           
-          render();
+          pMouseX = e.x;
+          pMouseY = e.y;
         }
-        
-        pMouseX = e.x;
-        pMouseY = e.y;
       });
       
       window.addEventListener('wheel', e => {
-        let scaleFactor = 0.9966268260763764 ** e.wheelDelta;
+        if (INERTIA) {
+          let scaleFactor = 0.9966268260763764 ** e.wheelDelta;
+          
+          let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
+          let cyCursor = Y + (pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+          
+          let cxDiff = cxCursor - X;
+          let cyDiff = cyCursor - Y;
+          
+          let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
+          let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
+          
+          X += cxScaleDiff;
+          Y += cyScaleDiff;
+          
+          SCALE *= scaleFactor;
+          
+          render();
+          
+          velX = 0;
+          velY = 0;
+        } else {
+          let scaleFactor = 0.9966268260763764 ** e.wheelDelta;
+          
+          let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
+          let cyCursor = Y + (pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+          
+          let cxDiff = cxCursor - X;
+          let cyDiff = cyCursor - Y;
+          
+          let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
+          let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
+          
+          X += cxScaleDiff;
+          Y += cyScaleDiff;
+          
+          SCALE *= scaleFactor;
+          
+          render();
+        }
+      });
+      
+      let movementLoopRunning = false;
+      
+      function movementLoop(timestamp) {
+        if (movementLoopRunning && !timestamp) return;
         
-        let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
-        let cyCursor = Y + (pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+        movementLoopRunning = true;
         
-        let cxDiff = cxCursor - X;
-        let cyDiff = cyCursor - Y;
+        if (!mouseDown) {
+          X -= velX / realCanvasHeight * SCALE;
+          Y -= velY / realCanvasHeight * SCALE;
         
-        let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
-        let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
-        
-        X += cxScaleDiff;
-        Y += cyScaleDiff;
-        
-        SCALE *= scaleFactor;
+          if (pTimestamp) {
+            let timeSinceUnclicked = timestamp - timeUnclicked;
+            
+            velX *= INERTIA_SLOWDOWN_FACTOR ** ((timestamp - pTimestamp) * (timeSinceUnclicked * INERTIA_TEMPORAL_SLOWDOWN_FACTOR + 1));
+            velY *= INERTIA_SLOWDOWN_FACTOR ** ((timestamp - pTimestamp) * (timeSinceUnclicked * INERTIA_TEMPORAL_SLOWDOWN_FACTOR + 1));
+          }
+        }
         
         render();
-      });
+        
+        if (Math.abs(velX) < INERTIA_THRESHOLD && Math.abs(velY) < INERTIA_THRESHOLD) {
+          movementLoopRunning = false;
+          pTimestamp = null;
+        } else {
+          pTimestamp = timestamp;
+          requestAnimationFrame(movementLoop);
+        }
+      }
     </script>
   </body>
 </html>
