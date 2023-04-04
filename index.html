@@ -58,17 +58,22 @@
         8. fix coordinate flip
         9. inertia on scrolling
         10. fix coordinates becoming NaN on inertia due to velMag being 0 (thus division by 0)
-        11. zoom smoothly
-        12. touch support
-        13. gpu support
+        11. make event handlers prevent default action (primarily for scrolling if it is embedded in an iframe)
+        12. add random fuzzing / artifical banding support
+        zoom smoothly
+        touch support
+        gpu support
         
         bug when zooming after changing page zoom
       */
       let RENDER_METHOD = 1;
       let LOG_RENDER = false;
-      let SMOOTH_ITERS = true;
+      let SMOOTH_ITERS = true,
+        RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
+        DO_ARTIFICIAL_BANDING = false,
+        ARTIFICIAL_BANDING_FACTOR = 1;
       let MAX_ITERS = 255;
-      let SUBPIXEL_SCALE = 0.5;
+      let SUBPIXEL_SCALE = 1;
       let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120);
       let INERTIA = true,
         INERTIA_SLOWDOWN = 10,
@@ -126,6 +131,34 @@
         return iterCount;
       }
       
+      // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+      // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
+      function hash(x) {
+        x = x + (x << 10) << 0;
+        x ^= x >> 6;
+        x = x + (x << 3) << 0;
+        x ^= x >> 11;
+        x = x + (x << 15) << 0;
+        return (x & 0xffff) / 0x10000;
+      }
+      
+      // randomly rounds up or down, biased toward the side the number is closer to
+      function randomRound(val, i) {
+        if (Number.isInteger(val)) {
+          return val;
+        }
+        
+        let bottom = Math.floor(val);
+        let top = Math.ceil(val);
+        let fraction = val - bottom;
+        
+        if (hash(i) > fraction) {
+          return bottom;
+        } else {
+          return top;
+        }
+      }
+      
       function fillMandelPixelArray(x, y, scale, width, height, pixelData) {
         for (var i = 0; i < width * height * 4; i += 4) {
           let px = Math.floor(i / 4) % width,
@@ -149,7 +182,20 @@
           let iters = getMandelIterct(cx, cy);
           
           if (iters < MAX_ITERS) {
-            pixelData.data[i + 2] = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 255);
+            let blueChannel = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 255);
+            if (DO_ARTIFICIAL_BANDING) {
+              if (RANDOM_COLOR_FUZZING) {
+                pixelData.data[i + 2] = randomRound(blueChannel / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+              } else {
+                pixelData.data[i + 2] = Math.round(blueChannel / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+              }
+            } else {
+              if (RANDOM_COLOR_FUZZING) {
+                pixelData.data[i + 2] = randomRound(blueChannel, i);
+              } else {
+                pixelData.data[i + 2] = blueChannel; // special code path for more efficient rendering
+              }
+            }
           } else {
             pixelData.data[i + 2] = 0;
           }
@@ -199,11 +245,14 @@
       
       window.addEventListener('mousedown', e => {
         mouseDown = true;
+        
         pMouseX = e.x;
         pMouseY = e.y;
+        
+        e.preventDefault();
       });
       
-      window.addEventListener('mouseup', () => {
+      window.addEventListener('mouseup', e => {
         if (INERTIA) {
           timeUnclicked = performance.now();
           let minValidTime = timeUnclicked - PREV_MOUSE_BUFFER_TIMESPAN;
@@ -218,6 +267,8 @@
         }
         
         mouseDown = false;
+        
+        e.preventDefault();
       });
       
       window.addEventListener('mousemove', e => {
@@ -256,6 +307,8 @@
           pMouseX = e.x;
           pMouseY = e.y;
         }
+        
+        e.preventDefault();
       });
       
       window.addEventListener('wheel', e => {
@@ -299,7 +352,9 @@
           
           render();
         }
-      });
+        
+        e.preventDefault();
+      }, { passive: false });
       
       let movementLoopRunning = false;
       
