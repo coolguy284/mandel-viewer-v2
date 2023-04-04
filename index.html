@@ -1,6 +1,9 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset = 'utf-8'>
+    <meta name = 'viewport' content = 'width=device-width, initial-scale=1'>
+    
     <title>Mandelbrot Explorer</title>
     <style>
       html, body {
@@ -91,7 +94,7 @@
       let RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
         DO_ARTIFICIAL_BANDING = false, // quantize iteration count after calculating smooth iteration count, primarily used to test random color fuzzing
         ARTIFICIAL_BANDING_FACTOR = 1; // factor of quantization, 2 makes color channel even, 3 makes color channel a multiple of 3, etc.
-      let SUBPIXEL_SCALE = 1; // default ratio of canvas pixel size to true canvas size, 0 < x < 1 to render faster but more pixelated, x > 1 to supersample and make higher quality image
+      let SUBPIXEL_SCALE = 0.25; // default ratio of canvas pixel size to true canvas size, 0 < x < 1 to render faster but more pixelated, x > 1 to supersample and make higher quality image
       let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120); // amount that image scale is changed per unit of mouse delta (normal scroll is 120 delta)
       let INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
         INERTIA_FASTSLOWDOWN_TIME_THRESHOLD = 0.8, // amount of seconds of slow inertia slowdown before fast slowdown begins, must also be moving faster than velocity threshold
@@ -109,6 +112,7 @@
       let targetScale = SCALE, targetScalePMouseX = null, targetScalePMouseY = null;
       let pMouseX = null, pMouseY = null, pTimestamp = null, timeUnclicked = null;
       let previousMouseDrags = [];
+      let logZoomScaleFactor = Math.log(ZOOM_SCALE_FACTOR);
       
       // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
       function getMandelIterct(cx, cy) {
@@ -352,6 +356,7 @@
             coords.style.display = 'none';
           }
         }
+        
         coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}`;
       }
       
@@ -570,16 +575,99 @@
         },
       };
       
+      let touchPoints = {};
+      
+      let touchEvents = {
+        down: () => {
+          let entries = Object.entries(touchPoints);
+          
+          if (entries.length == 0) return;
+          
+          if (entries.length == 1) {
+            events.mouseDown(entries[0][1].x, entries[0][1].y);
+          } else {
+            let posSum = entries.reduce((a, c) => [a[0] + c[1].x, a[1] + c[1].y], [0, 0]);
+            
+            let posAvg = [posSum[0] / entries.length, posSum[1] / entries.length];
+            
+            pMouseX = posAvg[0];
+            pMouseY = posAvg[1];
+          }
+        },
+        
+        up: () => {
+          let entries = Object.entries(touchPoints);
+          
+          if (entries.length == 0) {
+            events.mouseUp();
+          } else {
+            let posSum = entries.reduce((a, c) => [a[0] + c[1].x, a[1] + c[1].y], [0, 0]);
+            
+            let posAvg = [posSum[0] / entries.length, posSum[1] / entries.length];
+            
+            pMouseX = posAvg[0];
+            pMouseY = posAvg[1];
+          }
+        },
+        
+        move: () => {
+          let entries = Object.entries(touchPoints);
+          
+          if (entries.length == 0) return;
+          
+          if (entries.length == 1) {
+            events.mouseMove(entries[0][1].x, entries[0][1].y);
+          } else if (entries.length == 2) {
+            let posSum = entries.reduce((a, c) => [a[0] + c[1].x, a[1] + c[1].y], [0, 0]);
+            
+            let posAvg = [posSum[0] / entries.length, posSum[1] / entries.length];
+            
+            events.mouseMove(...posAvg);
+            
+            let dist = Math.hypot(
+              entries[1][1].x - entries[0][1].x,
+              entries[1][1].y - entries[0][1].y
+            );
+            
+            let pDist = Math.hypot(
+              (entries[1][1].px ?? entries[1][1].x) - (entries[0][1].px ?? entries[0][1].x),
+              (entries[1][1].py ?? entries[1][1].y) - (entries[0][1].py ?? entries[0][1].y)
+            );
+            
+            let wheelDelta = -Math.log(dist / pDist) / logZoomScaleFactor;
+            
+            events.wheel(wheelDelta);
+          } else {
+            let posSum = entries.reduce((a, c) => [a[0] + c[1].x, a[1] + c[1].y], [0, 0]);
+            
+            let posAvg = [posSum[0] / entries.length, posSum[1] / entries.length];
+            
+            events.mouseMove(...posAvg);
+          }
+        },
+      };
+      
       window.addEventListener('mousedown', e => {
-        events.mouseDown(e.x, e.y);
+        touchPoints.mouse = { x: e.x, y: e.y };
+        
+        touchEvents.down();
       });
       
       window.addEventListener('mouseup', e => {
-        events.mouseUp();
+        delete touchPoints.mouse;
+        
+        touchEvents.up();
       });
       
       window.addEventListener('mousemove', e => {
-        events.mouseMove(e.x, e.y);
+        if (touchPoints.mouse) {
+          touchPoints.mouse.x = e.x;
+          touchPoints.mouse.y = e.y;
+          
+          touchEvents.move();
+        } else {
+          events.mouseMove(e.x, e.y);
+        }
       });
       
       window.addEventListener('wheel', e => {
@@ -595,6 +683,43 @@
           events.escapeKey();
         }
       });
+      
+      window.addEventListener('touchstart', e => {
+        for (let touch of e.changedTouches) {
+          touchPoints[touch.identifier] = { x: touch.pageX, y: touch.pageY };
+        }
+        
+        touchEvents.down();
+        
+        e.preventDefault();
+      }, { passive: false });
+      
+      window.addEventListener('touchmove', e => {
+        for (let touch of e.changedTouches) {
+          touchPoints[touch.identifier].px = touchPoints[touch.identifier].x;
+          touchPoints[touch.identifier].py = touchPoints[touch.identifier].y;
+          touchPoints[touch.identifier].x = touch.pageX;
+          touchPoints[touch.identifier].y = touch.pageY;
+        }
+        
+        touchEvents.move();
+        
+        e.preventDefault();
+      }, { passive: false });
+      
+      let touchEndHandler = e => {
+        for (let touch of e.changedTouches) {
+          delete touchPoints[touch.identifier];
+        }
+        
+        touchEvents.up();
+        
+        e.preventDefault();
+      };
+      
+      window.addEventListener('touchend', touchEndHandler);
+      
+      window.addEventListener('touchcancel', touchEndHandler);
     </script>
   </body>
 </html>
