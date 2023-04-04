@@ -62,14 +62,15 @@
         12. add random fuzzing / artifical banding support
         13. zoom smoothly
         14. remove preventdefault on mousedown, up, move
-        15. 
+        15. update log rendering mode
         touch support
+        settings menu
         gpu support
         
         bug when zooming after changing page zoom
       */
       let RENDER_METHOD = 1; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl shader
-      let LOG_RENDER = false; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once
+      let LOG_RENDER = 0; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once; 0 - no log render, 1 - 50% of mandelbrot set zoom is visible, 2 - full mandelbrot set is always visible, albeit distorted
       let SMOOTH_ITERS = true, // calculate fractional iteration count and color smoothly
         RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
         DO_ARTIFICIAL_BANDING = false, // quantize iteration count after calculating smooth iteration count, primarily used to test random color fuzzing
@@ -88,6 +89,10 @@
       let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
         PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
       let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
+      /*
+        interesting places:
+        X = -0.10109636384562178, Y = 0.9562865108091415, SCALE = 9.603811037451508e-15; top spiral, set LOG_ZOOM = 2
+      */
       
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
@@ -167,20 +172,32 @@
         for (var i = 0; i < width * height * 4; i += 4) {
           let px = Math.floor(i / 4) % width,
             py = Math.floor(i / width / 4);
-          let normPx = (px - width / 2) / height,
-            normPy = -(py - height / 2) / height;
+          let normPx = (px - width / 2) / height, // normalized to -0.5 - 0.5, NOT -1 - 1
+            normPy = -(py - height / 2) / height; // normalized to -0.5 - 0.5, NOT -1 - 1
           
           let cx, cy;
           
-          if (LOG_RENDER) {
-            let dist = Math.hypot(normPx, normPy),
-              ang = Math.atan2(normPy, normPx);
+          switch (LOG_RENDER) {
+            case 0:
+              cx = normPx * scale + x;
+              cy = normPy * scale + y;
+              break;
             
-            cx = Math.cos(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + x;
-            cy = Math.sin(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + y;
-          } else {
-            cx = normPx * scale + x;
-            cy = normPy * scale + y;
+            case 1: {
+              let dist = Math.hypot(normPx, normPy),
+                ang = Math.atan2(normPy, normPx);
+              
+              cx = Math.cos(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + x;
+              cy = Math.sin(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + y;
+              } break;
+            
+            case 2: {
+              let dist = Math.hypot(normPx, normPy) * 2,
+                ang = Math.atan2(normPy, normPx);
+              
+              cx = Math.cos(ang) * (2 ** (dist * (-Math.log2(Math.min(scale, 1)) + 1.7)) - 1) * scale + x;
+              cy = Math.sin(ang) * (2 ** (dist * (-Math.log2(Math.min(scale, 1)) + 1.7)) - 1) * scale + y;
+              } break;
           }
           
           let iters = getMandelIterct(cx, cy);
@@ -203,6 +220,7 @@
           } else {
             pixelData.data[i + 2] = 0;
           }
+          
           pixelData.data[i + 3] = 255;
         }
       }
