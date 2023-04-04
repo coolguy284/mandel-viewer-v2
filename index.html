@@ -40,7 +40,7 @@
     </style>
   </head>
   <body>
-    <h1 id = 'coords'>X: 0, Y: 0, Scale: 1</h1>
+    <h1 id = 'coords' style = 'display: none;'>X: 0, Y: 0, Scale: 1</h1>
     
     <div>
       <canvas id = 'canvas'></canvas>
@@ -63,23 +63,36 @@
         13. zoom smoothly
         14. remove preventdefault on mousedown, up, move
         15. update log rendering mode
+        16. add other color palletes
         touch support
         settings menu
         gpu support
         
-        bug when zooming after changing page zoom
+        bug when zooming after changing page zoom; zoom is relative to point outside screen (zooming in) or much closer to center (zooming out)
+        bug on move and zoom; one frame delay on move and zoom before motion occurs, especially noticeable when render takes 1/5 second
       */
-      let RENDER_METHOD = 1; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl shader
+      
+      let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
+      /*
+        interesting places:
+        X = -0.10109636384562178, Y = 0.9562865108091415, SCALE = 9.603811037451508e-15; LOG_ZOOM = 2; top spiral
+      */
+      
+      let PALLETE = 0; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
       let LOG_RENDER = 0; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once; 0 - no log render, 1 - 50% of mandelbrot set zoom is visible, 2 - full mandelbrot set is always visible, albeit distorted
-      let SMOOTH_ITERS = true, // calculate fractional iteration count and color smoothly
-        RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
+      let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
+      
+      let RENDER_METHOD = 1; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl shader
+      let MAX_ITERS = 255; // depth of mandelbrot calculation
+      let INERTIA = true; // smooth movement and scroll
+      let SHOW_COORDINATES = true; // whether coordinates are shown in bottom right hand corner
+      
+      let RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
         DO_ARTIFICIAL_BANDING = false, // quantize iteration count after calculating smooth iteration count, primarily used to test random color fuzzing
         ARTIFICIAL_BANDING_FACTOR = 1; // factor of quantization, 2 makes color channel even, 3 makes color channel a multiple of 3, etc.
-      let MAX_ITERS = 255; // depth of mandelbrot calculation
       let SUBPIXEL_SCALE = 1; // default ratio of canvas pixel size to true canvas size, 0 < x < 1 to render faster but more pixelated, x > 1 to supersample and make higher quality image
       let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120); // amount that image scale is changed per unit of mouse delta (normal scroll is 120 delta)
-      let INERTIA = true, // smooth movement and scroll
-        INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
+      let INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
         INERTIA_FASTSLOWDOWN_TIME_THRESHOLD = 0.8, // amount of seconds of slow inertia slowdown before fast slowdown begins, must also be moving faster than velocity threshold
         INERTIA_FASTSLOWDOWN_VEL_THRESHOLD = 3, // pixel speed must be above this value before fast slowdown begins, must also be after the time threshold
         INERTIA_SLOWDOWN_FACTOR = 0.1, // smaller to slowdown faster in fast slowdown, hard to understand unit so just experiment
@@ -88,11 +101,6 @@
         INERTIA_ZOOM_THRESHOLD = 1e-2; // minimum natural log difference between target and current scale to perform a zoom operation
       let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
         PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
-      let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
-      /*
-        interesting places:
-        X = -0.10109636384562178, Y = 0.9562865108091415, SCALE = 9.603811037451508e-15; top spiral, set LOG_ZOOM = 2
-      */
       
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
@@ -168,6 +176,61 @@
         }
       }
       
+      function getRainbowIntIterColor(iters) {
+        //return [float(iters) / float(MAX_ITERS) * 5.0, 0, 0];
+        
+        if (iters < 0 || iters >= MAX_ITERS) return [0, 0, 0];
+        
+        let itersMod = (-(iters - 1) % 24 + 24) % 24;  // minus sign at front because backwards rainbow looks better
+        
+        switch (itersMod) {
+          case 0: return [1, 0, 0];
+          case 1: return [1, 0.25, 0];
+          case 2: return [1, 0.5, 0];
+          case 3: return [1, 0.75, 0];
+          case 4: return [1, 1, 0];
+          case 5: return [0.75, 1, 0];
+          case 6: return [0.5, 1, 0];
+          case 7: return [0.25, 1, 0];
+          case 8: return [0, 1, 0];
+          case 9: return [0, 1, 0.25];
+          case 10: return [0, 1, 0.5];
+          case 11: return [0, 1, 0.75];
+          case 12: return [0, 1, 1];
+          case 13: return [0, 0.75, 1];
+          case 14: return [0, 0.5, 1];
+          case 15: return [0, 0.25, 1];
+          case 16: return [0, 0, 1];
+          case 17: return [0.25, 0, 1];
+          case 18: return [0.5, 0, 1];
+          case 19: return [0.75, 0, 1];
+          case 20: return [1, 0, 1];
+          case 21: return [1, 0, 0.75];
+          case 22: return [1, 0, 0.5];
+          case 23: return [1, 0, 0.25];
+          default: return [0, 0, 0]; // should be impossible branch but here to remove the warning
+        }
+      }
+      
+      function getRainbowIterColor(iters) {
+        if (Number.isInteger(iters)) {
+          return getRainbowIntIterColor(iters);
+        }
+        
+        let itersFloor = Math.floor(iters);
+        let itersCeil = Math.ceil(iters);
+        let itersFrac = iters - itersFloor;
+        
+        let itersFloorColor = getRainbowIntIterColor(itersFloor);
+        let itersCeilColor = getRainbowIntIterColor(itersCeil);
+        
+        return [
+          itersFloorColor[0] + (itersCeilColor[0] - itersFloorColor[0]) * itersFrac,
+          itersFloorColor[1] + (itersCeilColor[1] - itersFloorColor[1]) * itersFrac,
+          itersFloorColor[2] + (itersCeilColor[2] - itersFloorColor[2]) * itersFrac,
+        ];
+      }
+      
       function fillMandelPixelArray(x, y, scale, width, height, pixelData) {
         for (var i = 0; i < width * height * 4; i += 4) {
           let px = Math.floor(i / 4) % width,
@@ -202,23 +265,58 @@
           
           let iters = getMandelIterct(cx, cy);
           
-          if (iters < MAX_ITERS) {
-            let blueChannel = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 255);
+          if (PALLETE >= 0 && PALLETE <= 2) {
+            let index;
+            
+            switch (PALLETE) {
+              case 0: index = i + 2; break;
+              case 1: index = i + 1; break;
+              case 2: index = i; break;
+            }
+            
+            if (iters < MAX_ITERS) {
+              let colorVal = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 256);
+              if (DO_ARTIFICIAL_BANDING) {
+                if (RANDOM_COLOR_FUZZING) {
+                  pixelData.data[index] = randomRound(colorVal / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+                } else {
+                  pixelData.data[index] = Math.round(colorVal / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+                }
+              } else {
+                if (RANDOM_COLOR_FUZZING) {
+                  pixelData.data[index] = randomRound(colorVal, i);
+                } else {
+                  pixelData.data[index] = colorVal; // special code path for more efficient rendering
+                }
+              }
+            } else {
+              pixelData.data[index] = 0;
+            }
+          } else if (PALLETE == 3) {
+            let color = getRainbowIterColor(iters);
+            
             if (DO_ARTIFICIAL_BANDING) {
               if (RANDOM_COLOR_FUZZING) {
-                pixelData.data[i + 2] = randomRound(blueChannel / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+                pixelData.data[i] = randomRound(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+                pixelData.data[i + 1] = randomRound(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+                pixelData.data[i + 2] = randomRound(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
               } else {
-                pixelData.data[i + 2] = Math.round(blueChannel / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+                pixelData.data[i] = Math.round(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+                pixelData.data[i + 1] = Math.round(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+                pixelData.data[i + 2] = Math.round(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
               }
             } else {
               if (RANDOM_COLOR_FUZZING) {
-                pixelData.data[i + 2] = randomRound(blueChannel, i);
+                pixelData.data[i] = randomRound(color[0] * 256, i);
+                pixelData.data[i + 1] = randomRound(color[1] * 256, i);
+                pixelData.data[i + 2] = randomRound(color[2] * 256, i);
               } else {
-                pixelData.data[i + 2] = blueChannel; // special code path for more efficient rendering
+                // special code path for more efficient rendering
+                pixelData.data[i] = color[0] * 256;
+                pixelData.data[i + 1] = color[1] * 256;
+                pixelData.data[i + 2] = color[2] * 256;
               }
             }
-          } else {
-            pixelData.data[i + 2] = 0;
           }
           
           pixelData.data[i + 3] = 255;
@@ -244,6 +342,15 @@
         
         let coordPrecision = Math.min(Math.max(-Math.log10(SCALE) + 3, 3), 16);
         
+        if (SHOW_COORDINATES) {
+          if (coords.style.display == 'none') {
+            coords.style.display = '';
+          }
+        } else {
+          if (coords.style.display != 'none') {
+            coords.style.display = 'none';
+          }
+        }
         coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}`;
       }
       
