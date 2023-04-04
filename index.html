@@ -239,12 +239,13 @@
         X = -0.10109636384562178, Y = 0.9562865108091415, SCALE = 9.603811037451508e-15; LOG_ZOOM = 2; top spiral
       */
       
-      let PALLETE = 3; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
+      let PALLETE = 0; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
       let LOG_RENDER = 0; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once; 0 - no log render, 1 - 50% of mandelbrot set zoom is visible, 2 - full mandelbrot set is always visible, albeit distorted
       let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
       
       let RENDER_METHOD = 4; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl test, 3 - webgl shader test, 4 - webgl shader
       let MAX_ITERS = 255; // depth of mandelbrot calculation
+      let ESCAPE_RADIUS = 256.0; // distance beyond which a point is considered escaped from the mandelbrot set
       let INERTIA = true; // smooth movement and scroll
       let SHOW_COORDINATES = false; // whether coordinates are shown in bottom right hand corner
       let SHOW_SETTINGS = false; // whether settings menu is shown
@@ -288,8 +289,100 @@
           gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
         }
       `, mandelFragShader = `
+        precision lowp float;
+        
+        uniform vec2 iResolution;
+        
+        uniform vec2 coords;
+        uniform float scale;
+        
+        uniform int pallete;
+        uniform int logRender;
+        uniform int normalize;
+        
+        uniform int maxIters;
+        uniform float escapeRadius;
+        
+        uniform int randomColorFuzzing;
+        uniform int doArtificialBanding;
+        uniform int artificialBandingFactor;
+        
+        int getMandelIterct(float cx, float cy) {
+          float qt1 = cx - 0.25;
+          float q = qt1 * qt1 + cy * cy;
+          if (q * (q + (cx - 0.25)) < 0.25 * cy * cy) {
+            return maxIters;
+          }
+          
+          float t1 = cx + 1.0;
+          if (t1 * t1 + cy * cy < (1.0 / 16.0)) {
+            return maxIters;
+          }
+          
+          float zx = 0.0;
+          float zy = 0.0;
+          float zx2 = 0.0;
+          float zy2 = 0.0;
+          
+          int iterCount2 = 0;
+          
+          for (int iterCount = 0; iterCount < 65536; iterCount++) {
+            zy = (zx + zx) * zy + cy;
+            zx = zx2 - zy2 + cx;
+            zx2 = zx * zx;
+            zy2 = zy * zy;
+            
+            if (zx2 + zy2 >= escapeRadius || iterCount >= maxIters) {
+              iterCount2 = iterCount;
+              break;
+            }
+          }
+          
+          return iterCount2;
+        }
+        
         void main() {
-          gl_FragColor = vec4(gl_FragCoord.x / 1920.0, 1.0, 0.0, 1.0);
+          //gl_FragColor = vec4(gl_FragCoord.x / iResolution.x, 1.0, 0.0, 1.0);
+          
+          float px = gl_FragCoord.x;
+          float py = gl_FragCoord.y;
+          
+          float normPx = (px - iResolution.x / 2.0) / iResolution.y;
+          float normPy = (py - iResolution.y / 2.0) / iResolution.y;
+          
+          float cx;
+          float cy;
+          
+          if (logRender == 0) {
+            cx = normPx * scale + coords.x;
+            cy = normPy * scale + coords.y;
+          } else if (logRender == 1) {
+          
+          } else if (logRender == 2) {
+            
+          }
+          
+          int iters = getMandelIterct(cx, cy);
+          
+          if (pallete >= 0 && pallete <= 2) {
+            float colorVal = min(-cos((float(iters) * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
+            
+            float processedColorVal;
+            
+            if (iters < maxIters) {
+              processedColorVal = colorVal / 256.0;
+            } else {
+              processedColorVal = 0.0;
+            }
+            
+            if (pallete == 0) {
+              gl_FragColor = vec4(0.0, 0.0, processedColorVal, 1.0);
+            } else if (pallete == 1) {
+              
+            } else if (pallete == 2) {
+              
+            }
+          }
         }
       `;
       
@@ -323,7 +416,7 @@
         
         let iterCount = 0;
         
-        while (zx2 + zy2 < 256.0 && iterCount < MAX_ITERS) {
+        while (zx2 + zy2 < ESCAPE_RADIUS && iterCount < MAX_ITERS) {
           zy = (zx + zx) * zy + cy;
           zx = zx2 - zy2 + cx;
           zx2 = zx * zx;
@@ -460,31 +553,32 @@
           let iters = getMandelIterct(cx, cy);
           
           if (PALLETE >= 0 && PALLETE <= 2) {
-            let index;
-            
-            switch (PALLETE) {
-              case 0: index = i + 2; break;
-              case 1: index = i + 1; break;
-              case 2: index = i; break;
-            }
+            let processedColorVal;
             
             if (iters < MAX_ITERS) {
               let colorVal = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 256);
+              
               if (DO_ARTIFICIAL_BANDING) {
                 if (RANDOM_COLOR_FUZZING) {
-                  pixelData.data[index] = randomRound(colorVal / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+                  processedColorVal = randomRound(colorVal / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
                 } else {
-                  pixelData.data[index] = Math.round(colorVal / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+                  processedColorVal = Math.round(colorVal / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
                 }
               } else {
                 if (RANDOM_COLOR_FUZZING) {
-                  pixelData.data[index] = randomRound(colorVal, i);
+                  processedColorVal = randomRound(colorVal, i);
                 } else {
-                  pixelData.data[index] = colorVal; // special code path for more efficient rendering
+                  processedColorVal = colorVal; // special code path for more efficient rendering
                 }
               }
             } else {
-              pixelData.data[index] = 0;
+              processedColorVal = 0;
+            }
+            
+            switch (PALLETE) {
+              case 0: pixelData.data[i + 2] = processedColorVal; break;
+              case 1: pixelData.data[i + 1] = processedColorVal; break;
+              case 2: pixelData.data[i] = processedColorVal; break;
             }
           } else if (PALLETE == 3) {
             let color = getRainbowIterColor(iters);
@@ -672,6 +766,21 @@
           false,
           modelViewMatrix
         );
+        ctx.uniform2fv(shaderProgramInfo.uniformLocations.iResolution, [canvas.width, canvas.height]);
+        
+        ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [X, Y]);
+        ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, SCALE);
+        
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.pallete, PALLETE);
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.logRender, LOG_RENDER);
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.normalize, SMOOTH_ITERS);
+        
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.maxIters, MAX_ITERS);
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.escapeRadius, ESCAPE_RADIUS);
+        
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.randomColorFuzzing, RANDOM_COLOR_FUZZING);
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.doArtificialBanding, DO_ARTIFICIAL_BANDING);
+        ctx.uniform1i(shaderProgramInfo.uniformLocations.artificialBandingFactor, ARTIFICIAL_BANDING_FACTOR);
         
         let offset = 0;
         let vertexCount = 4;
@@ -698,7 +807,7 @@
               }
               
               ctxType = 'webgl-test';
-              ctx = canvas.getContext('webgl');
+              ctx = canvas.getContext('webgl2');
               
               if (!ctx) {
                 alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
@@ -710,7 +819,7 @@
             }
             
             // create shaders if not in render method 2
-            if (RENDER_METHOD == 3 || RENDER_METHOD == 4) {
+            if (RENDER_METHOD == 3) {
               shaderProgram = initShaderProgram();
       
               shaderProgramInfo = {
@@ -732,7 +841,7 @@
               }
               
               ctxType = 'webgl-real';
-              ctx = canvas.getContext('webgl');
+              ctx = canvas.getContext('webgl2');
               
               if (!ctx) {
                 alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
@@ -744,19 +853,33 @@
             }
             
             // create shaders if not in render method 2
-            if (RENDER_METHOD == 3 || RENDER_METHOD == 4) {
-              shaderProgram = initShaderProgram();
+            shaderProgram = initShaderProgram();
       
-              shaderProgramInfo = {
-                attribLocations: {
-                  vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
-                },
-                uniformLocations: {
-                  projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-                  modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-                },
-              };
-            }
+            shaderProgramInfo = {
+              attribLocations: {
+                vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+              },
+              uniformLocations: {
+                projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                
+                iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
+                
+                coords: ctx.getUniformLocation(shaderProgram, 'coords'),
+                scale: ctx.getUniformLocation(shaderProgram, 'scale'),
+                
+                pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
+                logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
+                normalize: ctx.getUniformLocation(shaderProgram, 'normalize'),
+                
+                maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
+                escapeRadius: ctx.getUniformLocation(escapeRadius, 'escapeRadius'),
+                
+                randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
+                doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
+                artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
+              },
+            };
             break;
         }
       }
