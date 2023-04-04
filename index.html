@@ -77,6 +77,7 @@
         flex-direction: row;
         flex-wrap: wrap;
         gap: 1vw;
+        align-items: flex-end;
       }
       
       .flex-vertical {
@@ -102,6 +103,7 @@
       input[type = checkbox] {
         width: 1.7vw;
         height: 1.7vw;
+        margin-bottom: 0.38vw;
       }
     </style>
   </head>
@@ -130,6 +132,8 @@
           <label for = 'settings_scale'>Scale</label>
           <input type = 'text' id = 'settings_scale' onchange = 'processUpdatedSettings();'>
         </div>
+        
+        <button onclick = 'resetButton();'>Reset</button>
       </div>
       
       <div class = 'flex-horizontal'>
@@ -162,9 +166,11 @@
         <div class = 'flex-vertical'>
           <label for = 'settings_render_method'>Render Method</label>
           <select id = 'settings_render_method' onchange = 'processUpdatedSettings();'>
-            <option value = '0'>FillRect (TEST)</option>
             <option value = '1'>CPU</option>
-            <option value = '2'>GPU Shader</option>
+            <option value = '4'>GPU Shader</option>
+            <option value = '0'>FillRect (TEST)</option>
+            <option value = '2'>WebGl ClearColor (TEST)</option>
+            <option value = '3'>WebGl Shader (TEST)</option>
           </select>
         </div>
         
@@ -189,6 +195,11 @@
     
     <!-- <h1 style = 'position: absolute; left: 50%; top: 18%; color: white; border: 1px solid white;'>ewefwefwe</h1> -->
     
+    <!-- https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+    <script src = 'gl-matrix-min.js' integrity = 'sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ==' crossorigin = 'anonymous' defer></script>
+    -->
+    <script src = 'gl-matrix-min.js'></script>
+    
     <script>
       /*
         1. simple canvas test
@@ -210,10 +221,16 @@
         17. esc key to reset position
         18. touch support
         19. settings menu
+        20. add reset button to settings menu
+        21. add basic webgl implementation and fix resizing webgl canvas
         gpu support
+        add starting prompt that explains what site is and that double click for settings menu
+        
+        proper webgl canvas resizing
         
         bug when zooming after changing page zoom; zoom is relative to point outside screen (zooming in) or much closer to center (zooming out)
         bug on move and zoom; one frame delay on move and zoom before motion occurs, especially noticeable when render takes 1/5 second
+        bug when switching between 2d and webgl canvases; deleting and recreating canvas, and opengl stuff, causes memory leak
       */
       
       let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
@@ -226,16 +243,16 @@
       let LOG_RENDER = 0; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once; 0 - no log render, 1 - 50% of mandelbrot set zoom is visible, 2 - full mandelbrot set is always visible, albeit distorted
       let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
       
-      let RENDER_METHOD = 1; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl shader
+      let RENDER_METHOD = 4; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl test, 3 - webgl shader test, 4 - webgl shader
       let MAX_ITERS = 255; // depth of mandelbrot calculation
       let INERTIA = true; // smooth movement and scroll
       let SHOW_COORDINATES = false; // whether coordinates are shown in bottom right hand corner
       let SHOW_SETTINGS = false; // whether settings menu is shown
       
-      let RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
+      let RANDOM_COLOR_FUZZING = true, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
         DO_ARTIFICIAL_BANDING = false, // quantize iteration count after calculating smooth iteration count, primarily used to test random color fuzzing
         ARTIFICIAL_BANDING_FACTOR = 256; // factor of quantization, 2 makes color channel even, 3 makes color channel a multiple of 3, etc.
-      let SUBPIXEL_SCALE = 0.25; // default ratio of canvas pixel size to true canvas size, 0 < x < 1 to render faster but more pixelated, x > 1 to supersample and make higher quality image
+      let SUBPIXEL_SCALE = 1; // default ratio of canvas pixel size to true canvas size, 0 < x < 1 to render faster but more pixelated, x > 1 to supersample and make higher quality image
       let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120); // amount that image scale is changed per unit of mouse delta (normal scroll is 120 delta)
       let INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
         INERTIA_FASTSLOWDOWN_TIME_THRESHOLD = 0.8, // amount of seconds of slow inertia slowdown before fast slowdown begins, must also be moving faster than velocity threshold
@@ -247,6 +264,34 @@
       let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
         PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
       let DOUBLE_CLICK_THRESHOLD = 0.1; // time in seconds that a second click will count as a double click and open settings
+      let WEBGL_CANVAS_RESIZE_WAIT = 100; // time in milliseconds to wait before resizing
+      
+      // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+      let mandelVertTestShader = `
+        attribute vec4 aVertexPosition;
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        
+        void main() {
+          gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+        }
+      `, mandelFragTestShader = `
+        void main() {
+          gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+        }
+      `, mandelVertShader = `
+        attribute vec4 aVertexPosition;
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        
+        void main() {
+          gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+        }
+      `, mandelFragShader = `
+        void main() {
+          gl_FragColor = vec4(gl_FragCoord.x / 1920.0, 1.0, 0.0, 1.0);
+        }
+      `;
       
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
@@ -255,6 +300,8 @@
       let pMouseX = null, pMouseY = null, pTimestamp = null, timeUnclicked = null;
       let previousMouseDrags = [];
       let logZoomScaleFactor = Math.log(ZOOM_SCALE_FACTOR);
+      let ctxType, ctx;
+      let shaderProgram, shaderProgramInfo;
       
       // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
       function getMandelIterct(cx, cy) {
@@ -470,21 +517,322 @@
         }
       }
       
+      function abortGPURendering() {
+        switch (RENDER_METHOD) {
+          case 2:
+          case 3:
+            RENDER_METHOD = 0;
+            break;
+          
+          case 4:
+            RENDER_METHOD = 1;
+            break;
+        }
+        
+        render();
+      }
+      
+      function resetCanvas() {
+        let canvasCode = canvas_div.innerHTML;
+        canvas_div.innerHTML = '';
+        canvas_div.innerHTML = canvasCode;
+        
+        ctx = null;
+        ctxType = null;
+      }
+      
+      // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+      function loadShader(ctx, type, source) {
+        let shader = ctx.createShader(type);
+        
+        // send source code to shader object on gpu
+        ctx.shaderSource(shader, source);
+        
+        // compile the shader program
+        ctx.compileShader(shader);
+        
+        if (!ctx.getShaderParameter(shader, ctx.COMPILE_STATUS)) {
+          alert(`Error compiling OpenGL shader: ${ctx.getShaderInfoLog(shader)}`);
+          
+          ctx.deleteShader(shader);
+          
+          abortGPURendering();
+          
+          return null;
+        }
+        
+        return shader;
+      }
+      
+      // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+      function initShaderProgram() {
+        let shaderProgram;
+        
+        let vertexCode;
+        let fragmentCode;
+        
+        switch (RENDER_METHOD) {
+          case 3:
+            vertexCode = mandelVertTestShader;
+            fragmentCode = mandelFragTestShader;
+            break;
+          
+          case 4:
+            vertexCode = mandelVertShader;
+            fragmentCode = mandelFragShader;
+            break;
+        }
+        
+        let vertexShader = loadShader(ctx, ctx.VERTEX_SHADER, vertexCode);
+        let fragmentShader = loadShader(ctx, ctx.FRAGMENT_SHADER, fragmentCode);
+        
+        shaderProgram = ctx.createProgram();
+        ctx.attachShader(shaderProgram, vertexShader);
+        ctx.attachShader(shaderProgram, fragmentShader);
+        ctx.linkProgram(shaderProgram);
+        
+        if (!ctx.getProgramParameter(shaderProgram, ctx.LINK_STATUS)) {
+          alert(`Cannot initialize OpenGL shader program, reverting to CPU-based rendering: ${ctx.getProgramInfoLog(shaderProgram)}`);
+          
+          abortGPURendering();
+          
+          return null;
+        }
+        
+        return shaderProgram;
+      }
+      
+      // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+      function initGLBuffers() {
+        let positionBuffer = ctx.createBuffer();
+        
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, positionBuffer);
+        
+        let positions = new Float32Array([canvas.width / canvas.height, 1.0, -canvas.width / canvas.height, 1.0, canvas.width / canvas.height, -1.0, -canvas.width / canvas.height, -1.0]);
+        
+        ctx.bufferData(ctx.ARRAY_BUFFER, positions, ctx.STATIC_DRAW);
+        
+        return {
+          position: positionBuffer,
+        };
+      }
+      
+      // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+      function setPositionAttribute(buffers) {
+        let numComponents = 2;
+        let type = ctx.FLOAT;
+        let normalize = false;
+        let stride = 0;
+        let offset = 0;
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, buffers.position);
+        ctx.vertexAttribPointer(
+          shaderProgramInfo.attribLocations.vertexPosition,
+          numComponents,
+          type,
+          normalize,
+          stride,
+          offset
+        );
+        ctx.enableVertexAttribArray(shaderProgramInfo.attribLocations.vertexPosition);
+      }
+      
+      // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+      function drawGLScene(buffers) {
+        ctx.clearColor(0.0, 0.0, 0.0, 0.0);
+        ctx.clearDepth(1.0);
+        ctx.enable(ctx.DEPTH_TEST);
+        ctx.depthFunc(ctx.LEQUAL);
+        
+        ctx.clear(ctx.COLOR_BUFFER_BUT | ctx.DEPTH_BUFFER_BIT);
+        
+        let fieldOfView = (45 * Math.PI) / 180;
+        let aspect = ctx.canvas.clientWidth / ctx.canvas.clientHeight;
+        let zNear = 0.1;
+        let zFar = 100.0;
+        
+        let projectionMatrix = mat4.create();
+        
+        mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+        
+        let modelViewMatrix = mat4.create();
+        
+        mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -2.413]);
+        
+        setPositionAttribute(buffers);
+        
+        ctx.useProgram(shaderProgram);
+        
+        ctx.uniformMatrix4fv(
+          shaderProgramInfo.uniformLocations.projectionMatrix,
+          false,
+          projectionMatrix
+        );
+        ctx.uniformMatrix4fv(
+          shaderProgramInfo.uniformLocations.modelViewMatrix,
+          false,
+          modelViewMatrix
+        );
+        
+        let offset = 0;
+        let vertexCount = 4;
+        ctx.drawArrays(ctx.TRIANGLE_STRIP, offset, vertexCount);
+      }
+      
+      function ensureCanvasContext(ctxName) {
+        switch (ctxName) {
+          case '2d':
+            if (ctxType != '2d') {
+              if (ctxType?.startsWith('webgl')) {
+                resetCanvas();
+              }
+              
+              ctxType = '2d';
+              ctx = canvas.getContext('2d');
+            }
+            break;
+          
+          case 'webgl-test':
+            if (ctxType != 'webgl-test') {
+              if (ctxType == '2d') {
+                resetCanvas();
+              }
+              
+              ctxType = 'webgl-test';
+              ctx = canvas.getContext('webgl');
+              
+              if (!ctx) {
+                alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
+                
+                abortGPURendering();
+                
+                return;
+              }
+            }
+            
+            // create shaders if not in render method 2
+            if (RENDER_METHOD == 3 || RENDER_METHOD == 4) {
+              shaderProgram = initShaderProgram();
+      
+              shaderProgramInfo = {
+                attribLocations: {
+                  vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                },
+                uniformLocations: {
+                  projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                  modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                },
+              };
+            }
+            break;
+          
+          case 'webgl-real':
+            if (ctxType != 'webgl-real') {
+              if (ctxType == '2d') {
+                resetCanvas();
+              }
+              
+              ctxType = 'webgl-real';
+              ctx = canvas.getContext('webgl');
+              
+              if (!ctx) {
+                alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
+                
+                abortGPURendering();
+                
+                return;
+              }
+            }
+            
+            // create shaders if not in render method 2
+            if (RENDER_METHOD == 3 || RENDER_METHOD == 4) {
+              shaderProgram = initShaderProgram();
+      
+              shaderProgramInfo = {
+                attribLocations: {
+                  vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                },
+                uniformLocations: {
+                  projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                  modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                },
+              };
+            }
+            break;
+        }
+      }
+      
       function render() {
-        let ctx = canvas.getContext('2d');
         let width = canvas.width, height = canvas.height;
         
         switch (RENDER_METHOD) {
           case 0:
-            ctx.fillStyle = 'white';
+            ensureCanvasContext('2d');
+            
+            ctx.fillStyle = 'red';
             ctx.fillRect(0, 0, width, height);
+            
             break;
           
           case 1:
+            ensureCanvasContext('2d');
+            
             let pixelData = ctx.createImageData(width, height);
+            
             fillMandelPixelArray(X, Y, SCALE, width, height, pixelData);
+            
             ctx.putImageData(pixelData, 0, 0);
+            
             break;
+          
+          case 2:
+            ensureCanvasContext('webgl-test');
+            
+            if (!ctx) {
+              alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
+              
+              abortGPURendering();
+              
+              return;
+            }
+            
+            ctx.clearColor(1.0, 0.5, 0.0, 1.0);
+            ctx.clear(ctx.COLOR_BUFFER_BIT);
+            
+            break;
+          
+          case 3: {
+            ensureCanvasContext('webgl-test');
+            
+            if (!ctx) {
+              alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
+              
+              abortGPURendering();
+              
+              return;
+            }
+            
+            let buffers = initGLBuffers();
+            
+            drawGLScene(buffers);
+            
+            } break;
+          
+          case 4: {
+            ensureCanvasContext('webgl-real');
+            
+            if (!ctx) {
+              alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
+              
+              abortGPURendering();
+              
+              return;
+            }
+            
+            let buffers = initGLBuffers();
+            
+            drawGLScene(buffers);
+            
+            } break;
         }
         
         showCoordinates();
@@ -528,6 +876,10 @@
       }
       
       function resizeCanvas() {
+        if (ctxType?.startsWith('webgl')) {
+          resetCanvas();
+        }
+        
         let style = getComputedStyle(canvas);
         
         realCanvasWidth = parseInt(style.width);
@@ -549,6 +901,10 @@
         RENDER_METHOD = parseInt(settings_render_method.value);
         MAX_ITERS = parseInt(settings_max_iterations.value);
         INERTIA = settings_inertia.checked;
+        
+        if (INERTIA) {
+          targetScale = SCALE;
+        }
         
         render();
       }
@@ -572,6 +928,11 @@
         settings_max_iterations.value = MAX_ITERS;
         settings_inertia.checked = INERTIA;
         settings_show_coordinates.checked = SHOW_COORDINATES;
+      }
+      
+      function resetButton() {
+        events.escapeKey();
+        updateSettingsInputs();
       }
       
       let movementLoopRunning = false;
@@ -658,9 +1019,18 @@
         render();
       });
       
+      let webGLResizeTimeout;
+      
       window.addEventListener('resize', () => {
-        resizeCanvas();
-        render();
+        if (webGLResizeTimeout) {
+          clearTimeout(webGLResizeTimeout);
+        }
+        
+        webGLResizeTimeout = setTimeout(() => {
+          resizeCanvas();
+          render();
+          webGLResizeTimeout = null;
+        }, WEBGL_CANVAS_RESIZE_WAIT);
       });
       
       let events = {
