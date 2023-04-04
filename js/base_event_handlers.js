@@ -1,0 +1,126 @@
+let events = {
+  mouseDown: (x, y) => {
+    let currentTime = performance.now();
+    
+    if ((currentTime - timeUnclicked) / 1000 < DOUBLE_CLICK_THRESHOLD) {
+      SHOW_SETTINGS = true;
+      
+      showSettings();
+      
+      return;
+    }
+    
+    mouseDown = true;
+    
+    pMouseX = x;
+    pMouseY = y;
+  },
+  
+  mouseUp: () => {
+    timeUnclicked = performance.now();
+    
+    if (INERTIA) {
+      let minValidTime = timeUnclicked - PREV_MOUSE_BUFFER_TIMESPAN;
+      
+      let mouseDragSum = previousMouseDrags.filter(x => x[2] > minValidTime).reduce((a, c) => [a[0] + c[0], a[1] + c[1]], [0, 0]);
+      let mouseDrag = previousMouseDrags.length ? [mouseDragSum[0] / previousMouseDrags.length, mouseDragSum[1] / previousMouseDrags.length] : [0, 0];
+      
+      velX = mouseDrag[0];
+      velY = mouseDrag[1];
+      
+      previousMouseDrags.splice(0, Infinity);
+    }
+    
+    mouseDown = false;
+  },
+  
+  mouseMove: (x, y) => {
+    if (INERTIA) {
+      if (mouseDown) {
+        velX = x - pMouseX;
+        velY = -y + pMouseY;
+        
+        velMag = Math.hypot(velX, velY);
+        
+        X -= velX / realCanvasHeight * SCALE;
+        Y -= velY / realCanvasHeight * SCALE;
+      }
+      
+      pMouseX = x;
+      pMouseY = y;
+      
+      previousMouseDrags.push([velX, velY, performance.now()]);
+      if (previousMouseDrags.length > PREV_MOUSE_BUFFER_LENGTH) {
+        previousMouseDrags.splice(0, 1);
+      }
+      
+      if (mouseDown) {
+        movementLoop();
+      }
+    } else {
+      if (mouseDown) {
+        let deltaX = x - pMouseX, deltaY = -y + pMouseY;
+        
+        X -= deltaX / realCanvasHeight * SCALE;
+        Y -= deltaY / realCanvasHeight * SCALE;
+        
+        render();
+      }
+      
+      pMouseX = x;
+      pMouseY = y;
+    }
+  },
+  
+  wheel: (wheelDelta) => {
+    if (INERTIA) {
+      let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
+      
+      targetScale *= scaleFactor;
+      targetScalePMouseX = pMouseX;
+      targetScalePMouseY = pMouseY;
+      
+      if (!mouseDown) {
+        velX = 0;
+        velY = 0;
+      }
+      
+      movementLoop();
+    } else {
+      let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
+      
+      let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
+      let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+      
+      let cxDiff = cxCursor - X;
+      let cyDiff = cyCursor - Y;
+      
+      let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
+      let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
+      
+      X += cxScaleDiff;
+      Y += cyScaleDiff;
+      
+      SCALE *= scaleFactor;
+      
+      render();
+    }
+  },
+  
+  escapeKey: () => {
+    if (INERTIA) {
+      velX = 0;
+      velY = 0;
+      X = 0;
+      Y = 0;
+      SCALE = 4;
+      targetScale = 4;
+    } else {
+      X = 0;
+      Y = 0;
+      SCALE = 4;
+    }
+    
+    render();
+  },
+};

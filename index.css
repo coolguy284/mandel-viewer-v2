@@ -1,0 +1,99 @@
+html, body {
+  background: black;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#canvas_div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
+}
+
+#canvas {
+  display: flex;
+  flex-grow: 0;
+  width: 100%;
+  height: 100%;
+  margin: auto;
+}
+
+#coords {
+  position: absolute;
+  color: white;
+  left: 1vw;
+  bottom: max(-3vh, -3vw);
+  font-family: Impact;
+  font-size: min(6vh, 6vw);
+}
+
+#settings {
+  position: absolute;
+  left: 5%;
+  top: 8%;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: calc(90% - 6.2vw);
+  height: calc(84% - 5.2vw);
+  border-radius: 2vw;
+  border: 0.6vw solid rgba(0, 0, 0, 0.5);
+  padding: 2vw 2.5vw 2vw;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  flex-wrap: wrap;
+  font-family: Arial;
+  font-size: 1.1vw;
+  color: white;
+  gap: 1vw;
+}
+
+#settings_header {
+  align-self: center;
+  font-size: 2vw;
+}
+
+#close_btn {
+  position: absolute;
+  right: 1vw;
+  top: 1vw;
+}
+
+.flex-horizontal {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1vw;
+  align-items: flex-end;
+}
+
+.flex-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.2vw;
+}
+
+.flex-vertical-2 {
+  gap: 0.4vw;
+}
+
+select, input[type = text], input[type = number], button {
+  background-color: black;
+  color: white;
+  font-size: 1.3vw;
+  border: 0.2vw solid white;
+  border-radius: 0.5vw;
+  padding: 0.3vw;
+}
+
+input[type = checkbox] {
+  width: 1.7vw;
+  height: 1.7vw;
+  margin-bottom: 0.38vw;
+}
