@@ -14,7 +14,7 @@
         padding: 0;
       }
       
-      div {
+      #canvas_div {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -40,14 +40,87 @@
         font-family: Impact;
         font-size: min(6vh, 6vw);
       }
+      
+      #settings {
+        position: absolute;
+        left: 5%;
+        top: 8%;
+        background-color: rgba(0, 0, 0, 0.5);
+        width: calc(90% - 6.2vw);
+        height: calc(84% - 5.2vw);
+        border-radius: 2vw;
+        border: 0.6vw solid rgba(0, 0, 0, 0.5);
+        padding: 2vw 2.5vw 2vw;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        flex-wrap: wrap;
+        font-family: Arial;
+        color: white;
+      }
+      
+      #settings_header {
+        align-self: center;
+      }
     </style>
   </head>
   <body>
-    <h1 id = 'coords' style = 'display: none;'>X: 0, Y: 0, Scale: 1</h1>
-    
-    <div>
+    <div id = 'canvas_div'>
       <canvas id = 'canvas'></canvas>
     </div>
+    
+    <h1 id = 'coords' style = 'display: none;'>X: 0, Y: 0, Scale: 1</h1>
+    
+    <div id = 'settings' style = 'display: none;'>
+      <h1 id = 'settings_header'>Settings</h1>
+      
+      <label for = 'settings_x'>X</label>
+      <input type = 'text' id = 'settings_x' onchange = 'processUpdatedSettings();'>
+      
+      <label for = 'settings_y'>Y</label>
+      <input type = 'text' id = 'settings_y' onchange = 'processUpdatedSettings();'>
+      
+      <label for = 'settings_scale'>Scale</label>
+      <input type = 'text' id = 'settings_scale' onchange = 'processUpdatedSettings();'>
+      
+      <label for = 'settings_color_pallete'>Color Pallete</label>
+      <select id = 'settings_color_pallete' onchange = 'processUpdatedSettings();'>
+        <option value = '0'>Blue</option>
+        <option value = '1'>Green</option>
+        <option value = '2'>Red</option>
+        <option value = '3'>Rainbow</option>
+      </select>
+      
+      <label for = 'settings_log_render'>Log Render</label>
+      <select id = 'settings_log_render' onchange = 'processUpdatedSettings();'>
+        <option value = '0'>None</option>
+        <option value = '1'>Half</option>
+        <option value = '2'>Full</option>
+      </select>
+      
+      <label for = 'settings_smooth_iteration_count'>Smooth Iteration Count</label>
+      <input type = 'checkbox' id = 'settings_smooth_iteration_count' onchange = 'processUpdatedSettings();'>
+      
+      <label for = 'settings_render_method'>Render Method</label>
+      <select id = 'settings_render_method' onchange = 'processUpdatedSettings();'>
+        <option value = '0'>FillRect Canvas Test</option>
+        <option value = '1'>JS Calculations</option>
+        <option value = '2'>Shader Calculations</option>
+      </select>
+      
+      <label for = 'settings_max_iterations'>Max Iterations</label>
+      <input type = 'number' id = 'settings_max_iterations' onchange = 'processUpdatedSettings();'>
+      
+      <label for = 'settings_inertia'>Inertia</label>
+      <input type = 'checkbox' id = 'settings_inertia' onchange = 'processUpdatedSettings();'>
+      
+      <label for = 'settings_show_coordinates'>Show Coordinates</label>
+      <input type = 'checkbox' id = 'settings_show_coordinates' onchange = 'processUpdatedSettingsShowCoords();'>
+      
+      <button onclick = 'closeSettings();'>Close</button>
+    </div>
+    
+    <!-- <h1 style = 'position: absolute; left: 50%; top: 18%; color: white; border: 1px solid white;'>ewefwefwe</h1> -->
     
     <script>
       /*
@@ -69,7 +142,7 @@
         16. add other color palletes
         17. esc key to reset position
         18. touch support
-        settings menu
+        19. settings menu
         gpu support
         
         bug when zooming after changing page zoom; zoom is relative to point outside screen (zooming in) or much closer to center (zooming out)
@@ -82,18 +155,19 @@
         X = -0.10109636384562178, Y = 0.9562865108091415, SCALE = 9.603811037451508e-15; LOG_ZOOM = 2; top spiral
       */
       
-      let PALLETE = 0; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
+      let PALLETE = 3; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
       let LOG_RENDER = 0; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once; 0 - no log render, 1 - 50% of mandelbrot set zoom is visible, 2 - full mandelbrot set is always visible, albeit distorted
       let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
       
       let RENDER_METHOD = 1; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl shader
       let MAX_ITERS = 255; // depth of mandelbrot calculation
       let INERTIA = true; // smooth movement and scroll
-      let SHOW_COORDINATES = true; // whether coordinates are shown in bottom right hand corner
+      let SHOW_COORDINATES = false; // whether coordinates are shown in bottom right hand corner
+      let SHOW_SETTINGS = false; // whether settings menu is shown
       
       let RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
         DO_ARTIFICIAL_BANDING = false, // quantize iteration count after calculating smooth iteration count, primarily used to test random color fuzzing
-        ARTIFICIAL_BANDING_FACTOR = 1; // factor of quantization, 2 makes color channel even, 3 makes color channel a multiple of 3, etc.
+        ARTIFICIAL_BANDING_FACTOR = 256; // factor of quantization, 2 makes color channel even, 3 makes color channel a multiple of 3, etc.
       let SUBPIXEL_SCALE = 0.25; // default ratio of canvas pixel size to true canvas size, 0 < x < 1 to render faster but more pixelated, x > 1 to supersample and make higher quality image
       let ZOOM_SCALE_FACTOR = (1 / 1.5) ** (1 / 120); // amount that image scale is changed per unit of mouse delta (normal scroll is 120 delta)
       let INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
@@ -105,6 +179,7 @@
         INERTIA_ZOOM_THRESHOLD = 1e-2; // minimum natural log difference between target and current scale to perform a zoom operation
       let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
         PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
+      let DOUBLE_CLICK_THRESHOLD = 0.1; // time in seconds that a second click will count as a double click and open settings
       
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
@@ -345,6 +420,12 @@
             break;
         }
         
+        showCoordinates();
+        
+        showSettings();
+      }
+      
+      function showCoordinates() {
         let coordPrecision = Math.min(Math.max(-Math.log10(SCALE) + 3, 3), 16);
         
         if (SHOW_COORDINATES) {
@@ -360,6 +441,25 @@
         coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}`;
       }
       
+      function showSettings() {
+        if (SHOW_SETTINGS) {
+          if (settings.style.display == 'none') {
+            updateSettingsInputs();
+            settings.style.display = '';
+          }
+        } else {
+          if (settings.style.display != 'none') {
+            settings.style.display = 'none';
+          }
+        }
+      }
+      
+      function closeSettings() {
+        SHOW_SETTINGS = false;
+        
+        showSettings();
+      }
+      
       function resizeCanvas() {
         let style = getComputedStyle(canvas);
         
@@ -368,6 +468,43 @@
         
         canvas.width = Math.floor(realCanvasWidth * SUBPIXEL_SCALE);
         canvas.height = Math.floor(realCanvasHeight * SUBPIXEL_SCALE);
+      }
+      
+      function processUpdatedSettings() {
+        X = parseFloat(settings_x.value);
+        Y = parseFloat(settings_y.value);
+        SCALE = parseFloat(settings_scale.value);
+        
+        PALLETE = parseInt(settings_color_pallete.value);
+        LOG_RENDER = parseInt(settings_log_render.value);
+        SMOOTH_ITERS = settings_smooth_iteration_count.checked;
+        
+        RENDER_METHOD = parseInt(settings_render_method.value);
+        MAX_ITERS = parseInt(settings_max_iterations.value);
+        INERTIA = settings_inertia.checked;
+        
+        render();
+      }
+      
+      function processUpdatedSettingsShowCoords() {
+        SHOW_COORDINATES = settings_show_coordinates.checked;
+        
+        showCoordinates();
+      }
+      
+      function updateSettingsInputs() {
+        settings_x.value = X;
+        settings_y.value = Y;
+        settings_scale.value = SCALE;
+        
+        settings_color_pallete.value = PALLETE;
+        settings_log_render.value = LOG_RENDER;
+        settings_smooth_iteration_count.checked = SMOOTH_ITERS;
+        
+        settings_render_method.value = RENDER_METHOD;
+        settings_max_iterations.value = MAX_ITERS;
+        settings_inertia.checked = INERTIA;
+        settings_show_coordinates.checked = SHOW_COORDINATES;
       }
       
       let movementLoopRunning = false;
@@ -461,6 +598,16 @@
       
       let events = {
         mouseDown: (x, y) => {
+          let currentTime = performance.now();
+          
+          if ((currentTime - timeUnclicked) / 1000 < DOUBLE_CLICK_THRESHOLD) {
+            SHOW_SETTINGS = true;
+            
+            showSettings();
+            
+            return;
+          }
+          
           mouseDown = true;
           
           pMouseX = x;
@@ -468,8 +615,9 @@
         },
         
         mouseUp: () => {
+          timeUnclicked = performance.now();
+          
           if (INERTIA) {
-            timeUnclicked = performance.now();
             let minValidTime = timeUnclicked - PREV_MOUSE_BUFFER_TIMESPAN;
             
             let mouseDragSum = previousMouseDrags.filter(x => x[2] > minValidTime).reduce((a, c) => [a[0] + c[0], a[1] + c[1]], [0, 0]);
@@ -648,36 +796,44 @@
       };
       
       window.addEventListener('mousedown', e => {
-        touchPoints.mouse = { x: e.x, y: e.y };
-        
-        touchEvents.down();
+        if (!SHOW_SETTINGS) {
+          touchPoints.mouse = { x: e.x, y: e.y };
+          
+          touchEvents.down();
+        }
       });
       
       window.addEventListener('mouseup', e => {
-        delete touchPoints.mouse;
-        
-        touchEvents.up();
+        if (!SHOW_SETTINGS) {
+          delete touchPoints.mouse;
+          
+          touchEvents.up();
+        }
       });
       
       window.addEventListener('mousemove', e => {
-        if (touchPoints.mouse) {
-          touchPoints.mouse.x = e.x;
-          touchPoints.mouse.y = e.y;
-          
-          touchEvents.move();
-        } else {
-          events.mouseMove(e.x, e.y);
+        if (!SHOW_SETTINGS) {
+          if (touchPoints.mouse) {
+            touchPoints.mouse.x = e.x;
+            touchPoints.mouse.y = e.y;
+            
+            touchEvents.move();
+          } else {
+            events.mouseMove(e.x, e.y);
+          }
         }
       });
       
       window.addEventListener('wheel', e => {
-        events.wheel(e.wheelDelta);
-        
-        e.preventDefault();
+        if (!SHOW_SETTINGS) {
+          events.wheel(e.wheelDelta);
+          
+          e.preventDefault();
+        }
       }, { passive: false });
       
       window.addEventListener('keydown', e => {
-        if (e.keyCode == 27) {
+        if (!SHOW_SETTINGS && e.keyCode == 27) {
           // escape key pressed
           
           events.escapeKey();
@@ -685,36 +841,38 @@
       });
       
       window.addEventListener('touchstart', e => {
-        for (let touch of e.changedTouches) {
-          touchPoints[touch.identifier] = { x: touch.pageX, y: touch.pageY };
+        if (!SHOW_SETTINGS) {
+          for (let touch of e.changedTouches) {
+            touchPoints[touch.identifier] = { x: touch.pageX, y: touch.pageY };
+          }
+          
+          touchEvents.down();
         }
-        
-        touchEvents.down();
-        
-        e.preventDefault();
-      }, { passive: false });
+      });
       
       window.addEventListener('touchmove', e => {
-        for (let touch of e.changedTouches) {
-          touchPoints[touch.identifier].px = touchPoints[touch.identifier].x;
-          touchPoints[touch.identifier].py = touchPoints[touch.identifier].y;
-          touchPoints[touch.identifier].x = touch.pageX;
-          touchPoints[touch.identifier].y = touch.pageY;
+        if (!SHOW_SETTINGS) {
+          for (let touch of e.changedTouches) {
+            touchPoints[touch.identifier].px = touchPoints[touch.identifier].x;
+            touchPoints[touch.identifier].py = touchPoints[touch.identifier].y;
+            touchPoints[touch.identifier].x = touch.pageX;
+            touchPoints[touch.identifier].y = touch.pageY;
+          }
+          
+          touchEvents.move();
+          
+          e.preventDefault();
         }
-        
-        touchEvents.move();
-        
-        e.preventDefault();
       }, { passive: false });
       
       let touchEndHandler = e => {
-        for (let touch of e.changedTouches) {
-          delete touchPoints[touch.identifier];
+        if (!SHOW_SETTINGS) {
+          for (let touch of e.changedTouches) {
+            delete touchPoints[touch.identifier];
+          }
+          
+          touchEvents.up();
         }
-        
-        touchEvents.up();
-        
-        e.preventDefault();
       };
       
       window.addEventListener('touchend', touchEndHandler);
