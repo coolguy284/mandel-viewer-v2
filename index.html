@@ -60,13 +60,14 @@
         10. fix coordinates becoming NaN on inertia due to velMag being 0 (thus division by 0)
         11. make event handlers prevent default action (primarily for scrolling if it is embedded in an iframe)
         12. add random fuzzing / artifical banding support
-        zoom smoothly
+        13. zoom smoothly
+        14. remove preventdefault on mousedown and up
         touch support
         gpu support
         
         bug when zooming after changing page zoom
       */
-      let RENDER_METHOD = 1;
+      let RENDER_METHOD = 1; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl shader
       let LOG_RENDER = false;
       let SMOOTH_ITERS = true,
         RANDOM_COLOR_FUZZING = false, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
@@ -80,7 +81,9 @@
         INERTIA_FASTSLOWDOWN_TIME_THRESHOLD = 0.8,
         INERTIA_FASTSLOWDOWN_VEL_THRESHOLD = 3,
         INERTIA_SLOWDOWN_FACTOR = 0.1,
-        INERTIA_THRESHOLD = 1e-6;
+        INERTIA_MOVE_THRESHOLD = 1e-6, // minimum pixel velocity of the canvas to perform a move
+        INERTIA_ZOOM_FACTOR = 20, // bigger to reach target zoom faster, hard to understand unit so just experiment
+        INERTIA_ZOOM_THRESHOLD = 1e-2; // minimum natural log difference between target and current scale to perform a zoom operation
       let PREV_MOUSE_BUFFER_LENGTH = 3, // only used with inertia
         PREV_MOUSE_BUFFER_TIMESPAN = 100; // only used with inertia
       let X = 0, Y = 0, SCALE = 4;
@@ -88,7 +91,7 @@
       let realCanvasWidth = null, realCanvasHeight = null;
       let mouseDown = false;
       let velX = 0, velY = 0, velMag = 0;
-      let targetScale = null;
+      let targetScale = SCALE, targetScalePMouseX = null, targetScalePMouseY = null;
       let pMouseX = null, pMouseY = null, pTimestamp = null, timeUnclicked = null;
       let previousMouseDrags = [];
       
@@ -227,8 +230,10 @@
       
       function resizeCanvas() {
         let style = getComputedStyle(canvas);
+        
         realCanvasWidth = parseInt(style.width);
         realCanvasHeight = parseInt(style.height);
+        
         canvas.width = Math.floor(realCanvasWidth * SUBPIXEL_SCALE);
         canvas.height = Math.floor(realCanvasHeight * SUBPIXEL_SCALE);
       }
@@ -248,8 +253,6 @@
         
         pMouseX = e.x;
         pMouseY = e.y;
-        
-        e.preventDefault();
       });
       
       window.addEventListener('mouseup', e => {
@@ -267,8 +270,6 @@
         }
         
         mouseDown = false;
-        
-        e.preventDefault();
       });
       
       window.addEventListener('mousemove', e => {
@@ -307,32 +308,22 @@
           pMouseX = e.x;
           pMouseY = e.y;
         }
-        
-        e.preventDefault();
       });
       
       window.addEventListener('wheel', e => {
         if (INERTIA) {
           let scaleFactor = ZOOM_SCALE_FACTOR ** e.wheelDelta;
           
-          let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
-          let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+          targetScale *= scaleFactor;
+          targetScalePMouseX = pMouseX;
+          targetScalePMouseY = pMouseY;
           
-          let cxDiff = cxCursor - X;
-          let cyDiff = cyCursor - Y;
+          if (!mouseDown) {
+            velX = 0;
+            velY = 0;
+          }
           
-          let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
-          let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
-          
-          X += cxScaleDiff;
-          Y += cyScaleDiff;
-          
-          SCALE *= scaleFactor;
-          
-          render();
-          
-          velX = 0;
-          velY = 0;
+          movementLoop();
         } else {
           let scaleFactor = ZOOM_SCALE_FACTOR ** e.wheelDelta;
           
@@ -363,35 +354,70 @@
         
         movementLoopRunning = true;
         
-        if (!mouseDown) {
-          X -= velX / realCanvasHeight * SCALE;
-          Y -= velY / realCanvasHeight * SCALE;
+        let processMovement = Math.abs(velX) >= INERTIA_MOVE_THRESHOLD ||
+          Math.abs(velY) >= INERTIA_MOVE_THRESHOLD;
+        let processZoom = Math.abs(Math.log(targetScale / SCALE)) >= INERTIA_ZOOM_THRESHOLD;
         
-          if (pTimestamp) {
-            let lastFrameTime = (timestamp - pTimestamp) / 1000;
-            let timeSinceUnclicked = (timestamp - timeUnclicked) / 1000;
-            
-            let newVelMag;
-            if (timeSinceUnclicked > INERTIA_FASTSLOWDOWN_TIME_THRESHOLD && velMag > INERTIA_FASTSLOWDOWN_VEL_THRESHOLD) {
-              // bigger for fast speeds
-              newVelMag = Math.max((velMag - INERTIA_SLOWDOWN * lastFrameTime * 7) * INERTIA_SLOWDOWN_FACTOR ** lastFrameTime, 0);
-            } else {
-              // linear for slow speeds
-              newVelMag = Math.max(velMag - INERTIA_SLOWDOWN * lastFrameTime, 0);
+        let lastFrameTime;
+        if (pTimestamp) {
+          lastFrameTime = (timestamp - pTimestamp) / 1000;
+        }
+        
+        // movement processing
+        
+        if (processMovement) {
+          if (!mouseDown) {
+            X -= velX / realCanvasHeight * SCALE;
+            Y -= velY / realCanvasHeight * SCALE;
+          
+            if (pTimestamp) {
+              let newVelMag;
+              let timeSinceUnclicked =  (timestamp - timeUnclicked) / 1000;
+              if (timeSinceUnclicked > INERTIA_FASTSLOWDOWN_TIME_THRESHOLD && velMag > INERTIA_FASTSLOWDOWN_VEL_THRESHOLD) {
+                // bigger for fast speeds
+                newVelMag = Math.max((velMag - INERTIA_SLOWDOWN * lastFrameTime * 7) * INERTIA_SLOWDOWN_FACTOR ** lastFrameTime, 0);
+              } else {
+                // linear for slow speeds
+                newVelMag = Math.max(velMag - INERTIA_SLOWDOWN * lastFrameTime, 0);
+              }
+              
+              let slowdownFactor = velMag != 0 ? newVelMag / velMag : 0;
+              
+              velX *= slowdownFactor;
+              velY *= slowdownFactor;
+              
+              velMag = newVelMag;
             }
-            
-            let slowdownFactor = velMag != 0 ? newVelMag / velMag : 0;
-            
-            velX *= slowdownFactor;
-            velY *= slowdownFactor;
-            
-            velMag = newVelMag;
           }
         }
         
+        // zoom processing
+        
+        if (processZoom && pTimestamp) {
+          let scaleFactor = Math.E ** (Math.log(targetScale / SCALE) * Math.min(INERTIA_ZOOM_FACTOR * lastFrameTime, 1));
+          
+          let cxCursor = X + (targetScalePMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
+          let cyCursor = Y + -(targetScalePMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+          
+          let cxDiff = cxCursor - X;
+          let cyDiff = cyCursor - Y;
+          
+          let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
+          let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
+          
+          X += cxScaleDiff;
+          Y += cyScaleDiff;
+          
+          SCALE *= scaleFactor;
+        }
+        
+        // render
+        
         render();
         
-        if (Math.abs(velX) < INERTIA_THRESHOLD && Math.abs(velY) < INERTIA_THRESHOLD) {
+        if (Math.abs(velX) < INERTIA_MOVE_THRESHOLD &&
+            Math.abs(velY) < INERTIA_MOVE_THRESHOLD &&
+            Math.abs(Math.log(targetScale / SCALE)) < INERTIA_ZOOM_THRESHOLD) {
           movementLoopRunning = false;
           pTimestamp = null;
         } else {
