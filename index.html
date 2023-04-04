@@ -1,0 +1,232 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Mandelbrot Explorer</title>
+    <style>
+      html, body {
+        background: black;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      
+      div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        align-content: center;
+        flex-wrap: wrap;
+        width: 100%;
+        height: 100%;
+      }
+      
+      #canvas {
+        display: flex;
+        flex-grow: 0;
+        width: 100%;
+        height: 100%;
+        margin: auto;
+      }
+      
+      #coords {
+        position: absolute;
+        color: white;
+        left: 1vw;
+        bottom: max(-3vh, -3vw);
+        font-family: Impact;
+        font-size: min(6vh, 6vw);
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id = 'coords'>X: 0, Y: 0, Scale: 1</h1>
+    
+    <div>
+      <canvas id = 'canvas'></canvas>
+    </div>
+    
+    <script>
+      /*
+        1. simple canvas test
+        2. simple mandel rendering
+        3. movement support
+        4. scrolling support
+        5. updating header numbers
+        6. updating header numbers with good precision
+        7. normalized iteration count
+        8. fix coordinate flip
+        8. inertia on scrolling
+        9. zoom smoothly
+        touch support
+        gpu support
+        
+        bug when zooming after changing page zoom
+      */
+      let RENDER_METHOD = 1;
+      let LOG_RENDER = false;
+      let SMOOTH_ITERS = true;
+      let MAX_ITERS = 255;
+      let SUBPIXEL_SCALE = 0.5;
+      let X = 0, Y = 0, SCALE = 4;
+      
+      let realCanvasWidth = null, realCanvasHeight = null;
+      let mouseDown = false;
+      let pMouseX = null, pMouseY = null;
+      
+      // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
+      function getMandelIterct(cx, cy) {
+        let qt1 = cx - 0.25;
+        let q = qt1 * qt1 + cy * cy;
+        if (q * (q + (cx - 0.25)) < 0.25 * cy * cy) {
+          return MAX_ITERS;
+        }
+        
+        let t1 = cx + 1.0;
+        if (t1 * t1 + cy * cy < (1.0 / 16.0)) {
+          return MAX_ITERS;
+        }
+        
+        let zx = 0.0;
+        let zy = 0.0;
+        let zx2 = 0.0;
+        let zy2 = 0.0;
+        
+        let iterCount = 0;
+        
+        while (zx2 + zy2 < 256.0 && iterCount < MAX_ITERS) {
+          zy = (zx + zx) * zy + cy;
+          zx = zx2 - zy2 + cx;
+          zx2 = zx * zx;
+          zy2 = zy * zy;
+          
+          iterCount++;
+        }
+        
+        if (SMOOTH_ITERS && iterCount < MAX_ITERS) {
+          let log_zn = Math.log(zx2 + zy2) / 2.0;
+          let nu = Math.log(log_zn / Math.log(2.0)) / Math.log(2.0);
+          
+          iterCount = iterCount + 1 - nu;
+        }
+        
+        return iterCount;
+      }
+      
+      function fillMandelPixelArray(x, y, scale, width, height, pixelData) {
+        for (var i = 0; i < width * height * 4; i += 4) {
+          let px = Math.floor(i / 4) % width,
+            py = Math.floor(i / width / 4);
+          let normPx = (px - width / 2) / height,
+            normPy = (py - height / 2) / height;
+          
+          let cx, cy;
+          
+          if (LOG_RENDER) {
+            let dist = Math.hypot(normPx, normPy),
+              ang = Math.atan2(normPy, normPx);
+            
+            cx = Math.cos(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + x;
+            cy = Math.sin(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + y;
+          } else {
+            cx = normPx * scale + x;
+            cy = normPy * scale + y;
+          }
+          
+          let iters = getMandelIterct(cx, cy);
+          
+          if (iters < MAX_ITERS) {
+            pixelData.data[i + 2] = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 255);
+          } else {
+            pixelData.data[i + 2] = 0;
+          }
+          pixelData.data[i + 3] = 255;
+        }
+      }
+      
+      function render() {
+        let ctx = canvas.getContext('2d');
+        let width = canvas.width, height = canvas.height;
+        
+        switch (RENDER_METHOD) {
+          case 0:
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            break;
+          
+          case 1:
+            let pixelData = ctx.createImageData(width, height);
+            fillMandelPixelArray(X, Y, SCALE, width, height, pixelData);
+            ctx.putImageData(pixelData, 0, 0);
+            break;
+        }
+        
+        let coordPrecision = Math.min(Math.max(-Math.log10(SCALE) + 3, 3), 16);
+        
+        coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}`;
+      }
+      
+      function resizeCanvas() {
+        let style = getComputedStyle(canvas);
+        realCanvasWidth = parseInt(style.width);
+        realCanvasHeight = parseInt(style.height);
+        canvas.width = Math.floor(realCanvasWidth * SUBPIXEL_SCALE);
+        canvas.height = Math.floor(realCanvasHeight * SUBPIXEL_SCALE);
+      }
+      
+      window.addEventListener('load', () => {
+        resizeCanvas();
+        render();
+      });
+      
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        render();
+      });
+      
+      window.addEventListener('mousedown', e => {
+        mouseDown = true;
+        pMouseX = e.x;
+        pMouseY = e.y;
+      });
+      
+      window.addEventListener('mouseup', () => {
+        mouseDown = false;
+      });
+      
+      window.addEventListener('mousemove', e => {
+        if (mouseDown) {
+          let deltaX = e.x - pMouseX, deltaY = e.y - pMouseY;
+          
+          X -= deltaX / realCanvasHeight * SCALE;
+          Y -= deltaY / realCanvasHeight * SCALE;
+          
+          render();
+        }
+        
+        pMouseX = e.x;
+        pMouseY = e.y;
+      });
+      
+      window.addEventListener('wheel', e => {
+        let scaleFactor = 0.9966268260763764 ** e.wheelDelta;
+        
+        let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
+        let cyCursor = Y + (pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+        
+        let cxDiff = cxCursor - X;
+        let cyDiff = cyCursor - Y;
+        
+        let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
+        let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
+        
+        X += cxScaleDiff;
+        Y += cyScaleDiff;
+        
+        SCALE *= scaleFactor;
+        
+        render();
+      });
+    </script>
+  </body>
+</html>
