@@ -66,7 +66,7 @@ window.addEventListener('wheel', e => {
 }, { passive: false });
 
 window.addEventListener('keydown', e => {
-  if (!SHOW_SETTINGS && startingPopupClosed && e.keyCode == 27) {
+  if (e.keyCode == 27) {
     // escape key pressed
     
     events.escapeKey();

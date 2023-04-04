@@ -25,7 +25,7 @@
   24. add starting prompt that explains what site is and that double click for settings menu
   25. make settings menu cog
   26. fix pmousex and y not set before zoom operation
-  escape to close popups
+  27. escape to close popups
   
   localstorage support
   proper webgl canvas resizing

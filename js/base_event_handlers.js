@@ -100,19 +100,25 @@ let events = {
   },
   
   escapeKey: () => {
-    if (INERTIA) {
-      velX = 0;
-      velY = 0;
-      X = 0;
-      Y = 0;
-      SCALE = 4;
-      targetScale = 4;
+    if (!startingPopupClosed) {
+      closeStartingPopup();
+    } else if (SHOW_SETTINGS) {
+      closeSettings();
     } else {
-      X = 0;
-      Y = 0;
-      SCALE = 4;
+      if (INERTIA) {
+        velX = 0;
+        velY = 0;
+        X = 0;
+        Y = 0;
+        SCALE = 4;
+        targetScale = 4;
+      } else {
+        X = 0;
+        Y = 0;
+        SCALE = 4;
+      }
+      
+      render();
     }
-    
-    render();
   },
 };
