@@ -9,6 +9,7 @@ function settingInputsToSettingVars() {
   
   RENDER_METHOD = parseInt(settings_render_method.value);
   MAX_ITERS = parseInt(settings_max_iterations.value);
+  ESCAPE_RADIUS = parseFloat(settings_escape_radius.value);
   INERTIA = settings_inertia.checked;
   
   if (INERTIA) {
@@ -35,6 +36,7 @@ function settingVarsToSettingInputs() {
   
   settings_render_method.value = RENDER_METHOD;
   settings_max_iterations.value = MAX_ITERS;
+  settings_escape_radius.value = ESCAPE_RADIUS;
   settings_inertia.checked = INERTIA;
   settings_show_coordinates.checked = SHOW_COORDINATES;
 }

@@ -27,11 +27,9 @@ function hash(x) {
 }
 
 function getRainbowIntIterColor(iters) {
-  //return [float(iters) / float(MAX_ITERS) * 5.0, 0, 0];
-  
   if (iters < 0 || iters >= MAX_ITERS) return [0, 0, 0];
   
-  let itersMod = (-(iters - 1) % 24 + 24) % 24;  // minus sign at front because backwards rainbow looks better
+  let itersMod = (-(iters - 1) % 24 + 24) % 24; // minus sign at front because backwards rainbow looks better
   
   switch (itersMod) {
     case 0: return [1, 0, 0];

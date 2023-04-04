@@ -160,7 +160,7 @@ function drawGLScene(buffers) {
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.pallete, PALLETE);
   ctx.uniform1i(shaderProgramInfo.uniformLocations.logRender, LOG_RENDER);
-  ctx.uniform1i(shaderProgramInfo.uniformLocations.normalize, SMOOTH_ITERS);
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.smoothIters, SMOOTH_ITERS);
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.maxIters, MAX_ITERS);
   ctx.uniform1f(shaderProgramInfo.uniformLocations.escapeRadius, ESCAPE_RADIUS);
@@ -172,4 +172,8 @@ function drawGLScene(buffers) {
   let offset = 0;
   let vertexCount = 4;
   ctx.drawArrays(ctx.TRIANGLE_STRIP, offset, vertexCount);
+  
+  // https://stackoverflow.com/questions/62836595/webgl-performance-differences-between-firefox-and-chrome
+  // Force the webpage to wait for the GPU process
+  //ctx.readPixels(0, 0, 1, 1, ctx.RGBA, ctx.UNSIGNED_BYTE, new Uint8Array(4));
 }

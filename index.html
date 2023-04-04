@@ -13,6 +13,7 @@
     </div>
     
     <h1 id = 'coords' style = 'display: none;'>X: 0, Y: 0, Scale: 1</h1>
+    <!--<h1 id = 'debug_log' style = ''>debug</h1>-->
     
     <div id = 'settings' style = 'display: none;'>
       <h1 id = 'settings_header'>Settings</h1>
@@ -77,6 +78,11 @@
         <div class = 'flex-vertical'>
           <label for = 'settings_max_iterations'>Max Iterations</label>
           <input type = 'number' id = 'settings_max_iterations' onchange = 'settingInputsToSettingVars();'>
+        </div>
+        
+        <div class = 'flex-vertical'>
+          <label for = 'settings_escape_radius'>Escape Radius</label>
+          <input type = 'text' id = 'settings_escape_radius' onchange = 'settingInputsToSettingVars();'>
         </div>
         
         <div class = 'flex-vertical flex-vertical-2'>

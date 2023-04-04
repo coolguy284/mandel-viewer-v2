@@ -21,6 +21,8 @@
   20. add reset button to settings menu
   21. add basic webgl implementation and fix resizing webgl canvas
   22. gpu support
+  23. feature complete the shader
+  localstorage support
   add starting prompt that explains what site is and that double click for settings menu
   
   proper webgl canvas resizing
@@ -41,7 +43,7 @@ let LOG_RENDER = 0; // convert distance from center of screen to an exponential 
 let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
 
 let RENDER_METHOD = 4; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl test, 3 - webgl shader test, 4 - webgl shader
-let MAX_ITERS = 4096; // depth of mandelbrot calculation
+let MAX_ITERS = 1024; // depth of mandelbrot calculation
 let ESCAPE_RADIUS = 256.0; // distance beyond which a point is considered escaped from the mandelbrot set
 let INERTIA = true; // smooth movement and scroll
 let SHOW_COORDINATES = false; // whether coordinates are shown in bottom right hand corner

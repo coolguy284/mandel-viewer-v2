@@ -1,5 +1,5 @@
 let events = {
-  mouseDown: (x, y) => {
+  mouseDown: (x, y) => {//debug_log.innerHTML+='<br>mousedown ' + ' ' + JSON.stringify(touchPoints);
     let currentTime = performance.now();
     
     if ((currentTime - timeUnclicked) / 1000 < DOUBLE_CLICK_THRESHOLD) {
@@ -13,10 +13,10 @@ let events = {
     mouseDown = true;
     
     pMouseX = x;
-    pMouseY = y;
+    pMouseY = y;//debug_log.innerHTML+='<br>mousedown2 ' + ' ' + JSON.stringify(touchPoints);
   },
   
-  mouseUp: () => {
+  mouseUp: () => {//debug_log.innerHTML+='<br>mouseup ' + ' ' + JSON.stringify(touchPoints);
     timeUnclicked = performance.now();
     
     if (INERTIA) {
@@ -31,7 +31,7 @@ let events = {
       previousMouseDrags.splice(0, Infinity);
     }
     
-    mouseDown = false;
+    mouseDown = false;//debug_log.innerHTML+='<br>mouseup2 ' + ' ' + JSON.stringify(touchPoints);
   },
   
   mouseMove: (x, y) => {

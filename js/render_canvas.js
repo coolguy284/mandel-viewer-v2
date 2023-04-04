@@ -81,7 +81,7 @@ function ensureCanvasContext(ctxName) {
           
           pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
           logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
-          normalize: ctx.getUniformLocation(shaderProgram, 'normalize'),
+          smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
           
           maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
           escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
