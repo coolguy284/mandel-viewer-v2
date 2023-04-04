@@ -43,20 +43,22 @@ window.addEventListener('mouseup', e => {
 });
 
 window.addEventListener('mousemove', e => {
-  if (!SHOW_SETTINGS && startingPopupClosed) {
-    if (touchPoints.mouse) {
-      touchPoints.mouse.x = e.x;
-      touchPoints.mouse.y = e.y;
-      
-      touchEvents.move();
-    } else {
-      events.mouseMove(e.x, e.y);
-    }
+  if (touchPoints.mouse) {
+    touchPoints.mouse.x = e.x;
+    touchPoints.mouse.y = e.y;
+    
+    touchEvents.move();
+  } else {
+    events.mouseMove(e.x, e.y);
   }
 });
 
 window.addEventListener('wheel', e => {
   if (!SHOW_SETTINGS && startingPopupClosed) {
+    if (pMouseX != e.x || pMouseY != e.y) {
+      events.mouseMove(e.x, e.y);
+    }
+    
     events.wheel(e.wheelDelta);
     
     e.preventDefault();

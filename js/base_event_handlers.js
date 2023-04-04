@@ -2,14 +2,6 @@ let events = {
   mouseDown: (x, y) => {//debug_log.innerHTML+='<br>mousedown ' + ' ' + JSON.stringify(touchPoints);
     let currentTime = performance.now();
     
-    if ((currentTime - timeUnclicked) / 1000 < DOUBLE_CLICK_THRESHOLD) {
-      SHOW_SETTINGS = true;
-      
-      showSettings();
-      
-      return;
-    }
-    
     mouseDown = true;
     
     pMouseX = x;

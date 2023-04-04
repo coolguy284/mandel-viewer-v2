@@ -47,6 +47,16 @@ function resetCoordsButton() {
   settingVarsToSettingInputs();
 }
 
+function toggleSettings() {
+  if (!startingPopupClosed) {
+    closeStartingPopup();
+  }
+  
+  SHOW_SETTINGS = !SHOW_SETTINGS;
+  
+  showSettings();
+}
+
 function closeSettings() {
   SHOW_SETTINGS = false;
   

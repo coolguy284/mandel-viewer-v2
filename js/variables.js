@@ -23,6 +23,9 @@
   22. gpu support
   23. feature complete the shader
   24. add starting prompt that explains what site is and that double click for settings menu
+  25. make settings menu cog
+  26. fix pmousex and y not set before zoom operation
+  escape to close popups
   
   localstorage support
   proper webgl canvas resizing
@@ -63,5 +66,4 @@ let INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
   INERTIA_ZOOM_THRESHOLD = 1e-2; // minimum natural log difference between target and current scale to perform a zoom operation
 let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
   PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
-let DOUBLE_CLICK_THRESHOLD = 0.1; // time in seconds that a second click will count as a double click and open settings
 let WEBGL_CANVAS_RESIZE_WAIT = 100; // time in milliseconds to wait before resizing

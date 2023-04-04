@@ -118,3 +118,22 @@ input[type = checkbox] {
 #proceed_btn {
   align-self: center;
 }
+
+#settings_button, #close_btn {
+  position: absolute;
+  bottom: 0.5vw;
+  right: 0.5vw;
+  border: none;
+  background: none;
+  padding: 0;
+  width: 3vw;
+  height: 3vw;
+}
+
+#settings_button svg, #close_btn svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
