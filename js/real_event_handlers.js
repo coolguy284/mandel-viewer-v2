@@ -1,4 +1,8 @@
 window.addEventListener('load', () => {
+  if (AUTOHIDE_STARTING_PROMPT) {
+    closeStartingPopup();
+  }
+  
   resizeCanvas();
   render();
 });

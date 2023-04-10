@@ -53,8 +53,15 @@ let events = {
       if (mouseDown) {
         let deltaX = x - pMouseX, deltaY = -y + pMouseY;
         
-        X -= deltaX / realCanvasHeight * SCALE;
-        Y -= deltaY / realCanvasHeight * SCALE;
+        if (RENDER_METHOD == 5) {
+          // math.js coordinates
+          X = math.subtract(X, math.multiply(math.bignumber(deltaX / realCanvasHeight), SCALE));
+          Y = math.subtract(Y, math.multiply(math.bignumber(deltaY / realCanvasHeight), SCALE));
+        } else {
+          // regular coordinates
+          X -= deltaX / realCanvasHeight * SCALE;
+          Y -= deltaY / realCanvasHeight * SCALE;
+        }
         
         render();
       }
@@ -79,21 +86,41 @@ let events = {
       
       movementLoop();
     } else {
-      let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
-      
-      let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
-      let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
-      
-      let cxDiff = cxCursor - X;
-      let cyDiff = cyCursor - Y;
-      
-      let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
-      let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
-      
-      X += cxScaleDiff;
-      Y += cyScaleDiff;
-      
-      SCALE *= scaleFactor;
+      if (RENDER_METHOD == 5) {
+        // math.js coordinates
+        let scaleFactor = math.bignumber(ZOOM_SCALE_FACTOR ** wheelDelta);
+        
+        let cxCursor = math.add(X, math.multiply(math.divide(math.subtract(pMouseX, math.bignumber(realCanvasWidth / 2)), realCanvasHeight), SCALE));
+        let cyCursor = math.add(Y, math.multiply(math.divide(math.unaryMinus(math.subtract(pMouseY, math.bignumber(realCanvasHeight / 2))), realCanvasHeight), SCALE));
+        
+        let cxDiff = math.subtract(cxCursor, X);
+        let cyDiff = math.subtract(cyCursor, Y);
+        
+        let cxScaleDiff = math.subtract(cxDiff, math.multiply(cxDiff, scaleFactor));
+        let cyScaleDiff = math.subtract(cyDiff, math.multiply(cyDiff, scaleFactor));
+        
+        X = math.add(X, cxScaleDiff);
+        Y = math.add(Y, cyScaleDiff);
+        
+        SCALE = math.multiply(SCALE, scaleFactor);
+      } else {
+        // regular coordinates
+        let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
+        
+        let cxCursor = X + (pMouseX - realCanvasWidth / 2) / realCanvasHeight * SCALE;
+        let cyCursor = Y + -(pMouseY - realCanvasHeight / 2) / realCanvasHeight * SCALE;
+        
+        let cxDiff = cxCursor - X;
+        let cyDiff = cyCursor - Y;
+        
+        let cxScaleDiff = cxDiff - cxDiff * scaleFactor;
+        let cyScaleDiff = cyDiff - cyDiff * scaleFactor;
+        
+        X += cxScaleDiff;
+        Y += cyScaleDiff;
+        
+        SCALE *= scaleFactor;
+      }
       
       render();
     }
@@ -113,9 +140,17 @@ let events = {
         SCALE = 4;
         targetScale = 4;
       } else {
-        X = 0;
-        Y = 0;
-        SCALE = 4;
+        if (RENDER_METHOD == 5) {
+          // math.js coordinates
+          X = math.bignumber('0');
+          Y = math.bignumber('0');
+          SCALE = math.bignumber('4');
+        } else {
+          // regular coordinates
+          X = 0;
+          Y = 0;
+          SCALE = 4;
+        }
       }
       
       render();

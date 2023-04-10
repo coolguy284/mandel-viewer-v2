@@ -26,6 +26,7 @@
   25. make settings menu cog
   26. fix pmousex and y not set before zoom operation
   27. escape to close popups
+  28. add basic math.js support
   
   localstorage support
   proper webgl canvas resizing
@@ -39,13 +40,14 @@ let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
 /*
   interesting places:
   X = -0.10109636384562178, Y = 0.9562865108091415, SCALE = 9.603811037451508e-15; LOG_ZOOM = 2; top spiral
+  X = -0.5480711427318311, Y = 0.5332889853014647, SCALE = 0.00013311315952046655; INERTIA_ZOOM_FACTOR = 1; comment out settings cogwheel; cool place to zoom in to
 */
 
 let PALLETE = 0; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
 let LOG_RENDER = 0; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once; 0 - no log render, 1 - 50% of mandelbrot set zoom is visible, 2 - full mandelbrot set is always visible, albeit distorted
 let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
 
-let RENDER_METHOD = 4; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl test, 3 - webgl shader test, 4 - webgl shader
+let RENDER_METHOD = 4; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl test, 3 - webgl shader test, 4 - webgl shader, 5 - math.js calculations and manual pixel setting
 let MAX_ITERS = 1024; // depth of mandelbrot calculation
 let ESCAPE_RADIUS = 256.0; // distance beyond which a point is considered escaped from the mandelbrot set
 let INERTIA = true; // smooth movement and scroll
@@ -67,3 +69,4 @@ let INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
 let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
   PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
 let WEBGL_CANVAS_RESIZE_WAIT = 100; // time in milliseconds to wait before resizing
+let AUTOHIDE_STARTING_PROMPT = false; // if true, hides startup prompt automatically

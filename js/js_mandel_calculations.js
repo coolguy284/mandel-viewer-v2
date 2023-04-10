@@ -118,6 +118,65 @@ function getMandelIterct(cx, cy) {
   return iterCount;
 }
 
+function fillMandelPixelArray_setPallete(iters, pixelData, i) {
+  if (PALLETE >= 0 && PALLETE <= 2) {
+    let processedColorVal;
+    
+    if (iters < MAX_ITERS) {
+      let colorVal = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 256);
+      
+      if (DO_ARTIFICIAL_BANDING) {
+        if (RANDOM_COLOR_FUZZING) {
+          processedColorVal = randomRound(colorVal / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+        } else {
+          processedColorVal = Math.round(colorVal / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+        }
+      } else {
+        if (RANDOM_COLOR_FUZZING) {
+          processedColorVal = randomRound(colorVal, i);
+        } else {
+          processedColorVal = colorVal; // special code path for more efficient rendering
+        }
+      }
+    } else {
+      processedColorVal = 0;
+    }
+    
+    switch (PALLETE) {
+      case 0: pixelData.data[i + 2] = processedColorVal; break;
+      case 1: pixelData.data[i + 1] = processedColorVal; break;
+      case 2: pixelData.data[i] = processedColorVal; break;
+    }
+  } else if (PALLETE == 3) {
+    let color = getRainbowIterColor(iters);
+    
+    if (DO_ARTIFICIAL_BANDING) {
+      if (RANDOM_COLOR_FUZZING) {
+        pixelData.data[i] = randomRound(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+        pixelData.data[i + 1] = randomRound(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+        pixelData.data[i + 2] = randomRound(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+      } else {
+        pixelData.data[i] = Math.round(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+        pixelData.data[i + 1] = Math.round(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+        pixelData.data[i + 2] = Math.round(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+      }
+    } else {
+      if (RANDOM_COLOR_FUZZING) {
+        pixelData.data[i] = randomRound(color[0] * 256, i);
+        pixelData.data[i + 1] = randomRound(color[1] * 256, i);
+        pixelData.data[i + 2] = randomRound(color[2] * 256, i);
+      } else {
+        // special code path for more efficient rendering
+        pixelData.data[i] = color[0] * 256;
+        pixelData.data[i + 1] = color[1] * 256;
+        pixelData.data[i + 2] = color[2] * 256;
+      }
+    }
+  }
+  
+  pixelData.data[i + 3] = 255;
+}
+
 function fillMandelPixelArray(x, y, scale, width, height, pixelData) {
   for (var i = 0; i < width * height * 4; i += 4) {
     let px = Math.floor(i / 4) % width,
@@ -137,76 +196,25 @@ function fillMandelPixelArray(x, y, scale, width, height, pixelData) {
         let dist = Math.hypot(normPx, normPy),
           ang = Math.atan2(normPy, normPx);
         
-        cx = Math.cos(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + x;
-        cy = Math.sin(ang) * (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale + y;
+        let expPart = (2 ** (dist * (-Math.log2(scale) + 4)) - 1) * scale;
+        
+        cx = Math.cos(ang) * expPart + x;
+        cy = Math.sin(ang) * expPart + y;
         } break;
       
       case 2: {
         let dist = Math.hypot(normPx, normPy) * 2,
           ang = Math.atan2(normPy, normPx);
         
-        cx = Math.cos(ang) * (2 ** (dist * (-Math.log2(Math.min(scale, 1)) + 1.7)) - 1) * scale + x;
-        cy = Math.sin(ang) * (2 ** (dist * (-Math.log2(Math.min(scale, 1)) + 1.7)) - 1) * scale + y;
+        let expPart = (2 ** (dist * (-Math.log2(Math.min(scale, 1)) + 1.7)) - 1) * scale;
+        
+        cx = Math.cos(ang) * expPart + x;
+        cy = Math.sin(ang) * expPart + y;
         } break;
     }
     
     let iters = getMandelIterct(cx, cy);
     
-    if (PALLETE >= 0 && PALLETE <= 2) {
-      let processedColorVal;
-      
-      if (iters < MAX_ITERS) {
-        let colorVal = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 256);
-        
-        if (DO_ARTIFICIAL_BANDING) {
-          if (RANDOM_COLOR_FUZZING) {
-            processedColorVal = randomRound(colorVal / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-          } else {
-            processedColorVal = Math.round(colorVal / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-          }
-        } else {
-          if (RANDOM_COLOR_FUZZING) {
-            processedColorVal = randomRound(colorVal, i);
-          } else {
-            processedColorVal = colorVal; // special code path for more efficient rendering
-          }
-        }
-      } else {
-        processedColorVal = 0;
-      }
-      
-      switch (PALLETE) {
-        case 0: pixelData.data[i + 2] = processedColorVal; break;
-        case 1: pixelData.data[i + 1] = processedColorVal; break;
-        case 2: pixelData.data[i] = processedColorVal; break;
-      }
-    } else if (PALLETE == 3) {
-      let color = getRainbowIterColor(iters);
-      
-      if (DO_ARTIFICIAL_BANDING) {
-        if (RANDOM_COLOR_FUZZING) {
-          pixelData.data[i] = randomRound(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-          pixelData.data[i + 1] = randomRound(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-          pixelData.data[i + 2] = randomRound(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-        } else {
-          pixelData.data[i] = Math.round(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-          pixelData.data[i + 1] = Math.round(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-          pixelData.data[i + 2] = Math.round(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-        }
-      } else {
-        if (RANDOM_COLOR_FUZZING) {
-          pixelData.data[i] = randomRound(color[0] * 256, i);
-          pixelData.data[i + 1] = randomRound(color[1] * 256, i);
-          pixelData.data[i + 2] = randomRound(color[2] * 256, i);
-        } else {
-          // special code path for more efficient rendering
-          pixelData.data[i] = color[0] * 256;
-          pixelData.data[i + 1] = color[1] * 256;
-          pixelData.data[i + 2] = color[2] * 256;
-        }
-      }
-    }
-    
-    pixelData.data[i + 3] = 255;
+    fillMandelPixelArray_setPallete(iters, pixelData, i);
   }
 }

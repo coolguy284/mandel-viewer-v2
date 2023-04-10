@@ -1,5 +1,5 @@
 function showCoordinates() {
-  let coordPrecision = Math.min(Math.max(-Math.log10(SCALE) + 3, 3), 16);
+  let coordPrecision = Math.min(Math.max(Math.floor(-Math.log10(SCALE)) + 3, 3), 16);
   
   if (SHOW_COORDINATES) {
     if (coords.style.display == 'none') {
@@ -26,7 +26,7 @@ function showSettings() {
       settings.style.display = 'none';
       coords.style.userSelect = '';
       let selection = getSelection();
-      if (selection.anchorNode.id ?? selection.anchorNode.parentElement?.id == 'coords') {
+      if (selection.anchorNode && (selection.anchorNode.id ?? selection.anchorNode.parentElement?.id == 'coords')) {
         selection.removeAllRanges();
       }
     }

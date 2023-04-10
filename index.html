@@ -73,7 +73,8 @@
         <div class = 'flex-vertical'>
           <label for = 'settings_render_method'>Render Method</label>
           <select id = 'settings_render_method' onchange = 'settingInputsToSettingVars();'>
-            <option value = '1'>CPU</option>
+            <option value = '5'>CPU Math.JS (GLACIAL)</option>
+            <option value = '1'>CPU (SLOW)</option>
             <option value = '4'>GPU Shader</option>
             <option value = '0'>FillRect (TEST)</option>
             <option value = '2'>WebGl ClearColor (TEST)</option>
@@ -122,11 +123,13 @@
     <script src = 'gl-matrix-min.js' integrity = 'sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ==' crossorigin = 'anonymous' defer></script>
     -->
     <script src = 'js_lib/gl-matrix-min.js'></script>
+    <script src = 'js_lib/math_js_11.8.0.js'></script>
     
     <script src = 'js/variables.js'></script>
     <script src = 'js/shader_code.js'></script>
     <script src = 'js/internal_variables.js'></script>
     <script src = 'js/js_mandel_calculations.js'></script>
+    <script src = 'js/math_js_mandel_calculations.js'></script>
     <script src = 'js/gpu_boilerplate.js'></script>
     <script src = 'js/render_canvas.js'></script>
     <script src = 'js/render_ui.js'></script>
