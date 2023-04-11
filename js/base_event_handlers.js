@@ -34,8 +34,15 @@ let events = {
         
         velMag = Math.hypot(velX, velY);
         
-        X -= velX / realCanvasHeight * SCALE;
-        Y -= velY / realCanvasHeight * SCALE;
+        if (typeof X == 'object') {
+          // math.js coordinates
+          X = math.subtract(X, math.multiply(math.bignumber(velX / realCanvasHeight), SCALE));
+          Y = math.subtract(Y, math.multiply(math.bignumber(velY / realCanvasHeight), SCALE));
+        } else {
+          // regular coordinates
+          X -= velX / realCanvasHeight * SCALE;
+          Y -= velY / realCanvasHeight * SCALE;
+        }
       }
       
       pMouseX = x;
@@ -73,9 +80,18 @@ let events = {
   
   wheel: (wheelDelta) => {
     if (INERTIA) {
-      let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
       
-      targetScale *= scaleFactor;
+      if (typeof X == 'object') {
+        // math.js coordinates
+        let scaleFactor = math.bignumber(ZOOM_SCALE_FACTOR ** wheelDelta);
+        
+        targetScale = math.multiply(targetScale, scaleFactor);
+      } else {
+        // regular coordinates
+        let scaleFactor = ZOOM_SCALE_FACTOR ** wheelDelta;
+        
+        targetScale *= scaleFactor;
+      }
       targetScalePMouseX = pMouseX;
       targetScalePMouseY = pMouseY;
       
@@ -135,10 +151,19 @@ let events = {
       if (INERTIA) {
         velX = 0;
         velY = 0;
-        X = 0;
-        Y = 0;
-        SCALE = 4;
-        targetScale = 4;
+        if (typeof X == 'object') {
+          // math.js coordinates
+          X = math.bignumber('0');
+          Y = math.bignumber('0');
+          SCALE = math.bignumber('4');
+          targetScale = math.bignumber('4');
+        } else {
+          // regular coordinates
+          X = 0;
+          Y = 0;
+          SCALE = 4;
+          targetScale = 4;
+        }
       } else {
         if (typeof X == 'object') {
           // math.js coordinates

@@ -101,12 +101,14 @@ function ensureHighPrecVars(highPrecision) {
       X = math.bignumber(X);
       Y = math.bignumber(Y);
       SCALE = math.bignumber(SCALE);
+      targetScale = math.bignumber(targetScale);
     }
   } else {
     if (typeof X == 'object') {
       X = math.number(X);
       Y = math.number(Y);
       SCALE = math.number(SCALE);
+      targetScale = math.number(targetScale);
     }
   }
 }

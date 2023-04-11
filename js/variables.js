@@ -30,7 +30,7 @@
   29. add math.js js perturbation calculation mode
   30. remove unnecessary debug_log element
   31. fix coord element wrapping
-  add math.js inertia support
+  32. add math.js inertia support
   add math.js webgl perturbation calculation mode
   localstorage support
   
@@ -47,6 +47,7 @@ let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
   X = -0.10109636384562178, Y = 0.9562865108091415, SCALE = 9.603811037451508e-15; LOG_ZOOM = 2; top spiral
   X = -0.5480711427318311, Y = 0.5332889853014647, SCALE = 0.00013311315952046655; INERTIA_ZOOM_FACTOR = 1; comment out settings cogwheel; cool place to zoom in to
   X = math.bignumber('-0.1669138399758970336918858535530384159750754298744987026667204716'), Y = math.bignumber('1.036113602793806406801271495188574980225574959651585263187751418'), SCALE = math.bignumber('4.220155877953513927149612108611859709103720835692467166641984013e-16'); moderate iteration count place to test perturbation calculations
+  X = math.bignumber('-0.13366830663337054858694168519219914479618712801034600522034914692189472761015923'), Y = math.bignumber('0.98932382309115156518297342024612380516419557875952324115767608094733408811445238'), SCALE = math.bignumber('1.3548879785039105487888559459877876350852457647933820199308945371879909567104359e-61'); high iteration count place that gets blocky then smooth again when zooming in
 */
 
 let PALLETE = 0; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
