@@ -1,6 +1,4 @@
 function showCoordinates() {
-  let coordPrecision = Math.min(Math.max(Math.floor(-Math.log10(SCALE)) + 3, 3), 16);
-  
   if (SHOW_COORDINATES) {
     if (coords.style.display == 'none') {
       coords.style.display = '';
@@ -11,7 +9,17 @@ function showCoordinates() {
     }
   }
   
-  coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}`;
+  if (SHOW_COORDINATES) {
+    if (typeof X == 'object') {
+      let coordPrecision = math.max(math.floor(-math.log10(SCALE)) + 3, 3);
+      
+      coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}, Perturbation: ${usingPerturbation}`;
+    } else {
+      let coordPrecision = Math.min(Math.max(Math.floor(-Math.log10(SCALE)) + 3, 3), 16);
+      
+      coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}`;
+    }
+  }
 }
 
 function showSettings() {

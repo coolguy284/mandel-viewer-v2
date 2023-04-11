@@ -111,23 +111,55 @@ function ensureHighPrecVars(highPrecision) {
   }
 }
 
-function render() {
-  let width = canvas.width, height = canvas.height;
+function ensureCtxAndVars() {
+  switch (RENDER_METHOD) {
+    case 0:
+    case 1:
+    case 5:
+    case 6:
+      ensureCanvasContext('2d');
+      break;
+    
+    case 2:
+    case 3:
+      ensureCanvasContext('webgl-test');
+      break;
+    
+    case 4:
+      ensureCanvasContext('webgl-real');
+      break;
+  }
   
   switch (RENDER_METHOD) {
     case 0:
-      ensureCanvasContext('2d');
+    case 1:
+    case 2:
+    case 3:
+    case 4:
       ensureHighPrecVars(false);
-      
+      break;
+    
+    case 5:
+    case 6:
+    case 7:
+      ensureHighPrecVars(true);
+      break;
+  }
+}
+
+function render() {
+  let width = canvas.width, height = canvas.height;
+  
+  ensureCtxAndVars();
+  
+  switch (RENDER_METHOD) {
+    case 0:
       ctx.fillStyle = 'red';
       ctx.fillRect(0, 0, width, height);
       
       break;
     
     case 1: {
-      ensureCanvasContext('2d');
-      ensureHighPrecVars(false);
-      
       let pixelData = ctx.createImageData(width, height);
       
       fillMandelPixelArray(X, Y, SCALE, width, height, pixelData);
@@ -137,9 +169,6 @@ function render() {
       } break;
     
     case 2:
-      ensureCanvasContext('webgl-test');
-      ensureHighPrecVars(false);
-      
       if (!ctx) {
         alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
         
@@ -154,9 +183,6 @@ function render() {
       break;
     
     case 3: {
-      ensureCanvasContext('webgl-test');
-      ensureHighPrecVars(false);
-      
       if (!ctx) {
         alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
         
@@ -172,9 +198,6 @@ function render() {
       } break;
     
     case 4: {
-      ensureCanvasContext('webgl-real');
-      ensureHighPrecVars(false);
-      
       if (!ctx) {
         alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
         
@@ -190,12 +213,24 @@ function render() {
       } break;
     
     case 5: {
-      ensureCanvasContext('2d');
-      ensureHighPrecVars(true);
-      
       let pixelData = ctx.createImageData(width, height);
       
       MathJSFillMandelPixelArray(X, Y, SCALE, width, height, pixelData);
+      
+      ctx.putImageData(pixelData, 0, 0);
+      
+      } break;
+    
+    case 6: {
+      let pixelData = ctx.createImageData(width, height);
+      
+      if (math.largerEq(SCALE, math.multiply(PERTURBATION_THRESHOLD_DOUBLE, 20))) {
+        usingPerturbation = false;
+        fillMandelPixelArray(math.number(X), math.number(Y), math.number(SCALE), width, height, pixelData);
+      } else {
+        usingPerturbation = true;
+        MathJS_PerturbJS_FillMandelPixelArray(X, Y, SCALE, width, height, pixelData);
+      }
       
       ctx.putImageData(pixelData, 0, 0);
       

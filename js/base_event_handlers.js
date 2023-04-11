@@ -53,7 +53,7 @@ let events = {
       if (mouseDown) {
         let deltaX = x - pMouseX, deltaY = -y + pMouseY;
         
-        if (RENDER_METHOD == 5) {
+        if (typeof X == 'object') {
           // math.js coordinates
           X = math.subtract(X, math.multiply(math.bignumber(deltaX / realCanvasHeight), SCALE));
           Y = math.subtract(Y, math.multiply(math.bignumber(deltaY / realCanvasHeight), SCALE));
@@ -86,7 +86,7 @@ let events = {
       
       movementLoop();
     } else {
-      if (RENDER_METHOD == 5) {
+      if (typeof X == 'object') {
         // math.js coordinates
         let scaleFactor = math.bignumber(ZOOM_SCALE_FACTOR ** wheelDelta);
         
@@ -140,7 +140,7 @@ let events = {
         SCALE = 4;
         targetScale = 4;
       } else {
-        if (RENDER_METHOD == 5) {
+        if (typeof X == 'object') {
           // math.js coordinates
           X = math.bignumber('0');
           Y = math.bignumber('0');

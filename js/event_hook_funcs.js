@@ -1,7 +1,13 @@
 function settingInputsToSettingVars() {
-  X = parseFloat(settings_x.value);
-  Y = parseFloat(settings_y.value);
-  SCALE = parseFloat(settings_scale.value);
+  if (typeof X == 'object') {
+    X = math.bignumber(settings_x.value);
+    Y = math.bignumber(settings_y.value);
+    SCALE = math.bignumber(settings_scale.value);
+  } else {
+    X = parseFloat(settings_x.value);
+    Y = parseFloat(settings_y.value);
+    SCALE = parseFloat(settings_scale.value);
+  }
   
   PALLETE = parseInt(settings_color_pallete.value);
   LOG_RENDER = parseInt(settings_log_render.value);
@@ -25,6 +31,13 @@ function settingInputsToSettingVars_ShowCoords() {
   showCoordinates();
 }
 
+function settingInputsToSettingVars_SubpixelScale() {
+  SUBPIXEL_SCALE = parseFloat(settings_subpixel_scale.value);
+  
+  resizeCanvas();
+  render();
+}
+
 function settingVarsToSettingInputs() {
   settings_x.value = X;
   settings_y.value = Y;
@@ -39,6 +52,8 @@ function settingVarsToSettingInputs() {
   settings_escape_radius.value = ESCAPE_RADIUS;
   settings_inertia.checked = INERTIA;
   settings_show_coordinates.checked = SHOW_COORDINATES;
+  
+  settings_subpixel_scale.value = SUBPIXEL_SCALE;
 }
 
 function resetCoordsButton() {
