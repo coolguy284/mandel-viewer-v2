@@ -31,6 +31,7 @@
   30. remove unnecessary debug_log element
   31. fix coord element wrapping
   32. add math.js inertia support
+  33. mark perturbation calculations as beta
   add math.js webgl perturbation calculation mode
   localstorage support
   
