@@ -28,6 +28,7 @@
   27. escape to close popups
   28. add basic math.js support
   29. add math.js js perturbation calculation mode
+  30. remove unnecessary debug_log element
   add math.js inertia support
   add math.js webgl perturbation calculation mode
   localstorage support

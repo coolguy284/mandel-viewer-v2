@@ -41,15 +41,6 @@ html, body {
   font-size: min(6vh, 6vw);
 }
 
-#debug_log {
-  position: absolute;
-  color: white;
-  left: 1vw;
-  top: 0.5vw;
-  font-family: Arial;
-  font-size: min(2vh, 2vw);
-}
-
 .popup {
   position: absolute;
   left: 5%;

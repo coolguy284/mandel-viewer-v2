@@ -1,14 +1,14 @@
 let events = {
-  mouseDown: (x, y) => {//debug_log.innerHTML+='<br>mousedown ' + ' ' + JSON.stringify(touchPoints);
+  mouseDown: (x, y) => {
     let currentTime = performance.now();
     
     mouseDown = true;
     
     pMouseX = x;
-    pMouseY = y;//debug_log.innerHTML+='<br>mousedown2 ' + ' ' + JSON.stringify(touchPoints);
+    pMouseY = y;
   },
   
-  mouseUp: () => {//debug_log.innerHTML+='<br>mouseup ' + ' ' + JSON.stringify(touchPoints);
+  mouseUp: () => {
     timeUnclicked = performance.now();
     
     if (INERTIA) {
@@ -23,7 +23,7 @@ let events = {
       previousMouseDrags.splice(0, Infinity);
     }
     
-    mouseDown = false;//debug_log.innerHTML+='<br>mouseup2 ' + ' ' + JSON.stringify(touchPoints);
+    mouseDown = false;
   },
   
   mouseMove: (x, y) => {

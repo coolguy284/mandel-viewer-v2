@@ -1,7 +1,7 @@
 let touchPoints = {};
 
 let touchEvents = {
-  down: () => {//debug_log.innerHTML+='<br>touchdown ' + ' ' + JSON.stringify(touchPoints);
+  down: () => {
     let entries = Object.entries(touchPoints);
     
     if (entries.length == 0) return;
@@ -15,10 +15,10 @@ let touchEvents = {
       
       pMouseX = posAvg[0];
       pMouseY = posAvg[1];
-    }//debug_log.innerHTML+='<br>touchdown2 ' + ' ' + JSON.stringify(touchPoints);
+    }
   },
   
-  up: () => {//debug_log.innerHTML+='<br>touchup ' + ' ' + JSON.stringify(touchPoints);
+  up: () => {
     let entries = Object.entries(touchPoints);
     
     if (entries.length == 0) {
@@ -30,7 +30,7 @@ let touchEvents = {
       
       pMouseX = posAvg[0];
       pMouseY = posAvg[1];
-    }//debug_log.innerHTML+='<br>touchup2 ' + ' ' + JSON.stringify(touchPoints);
+    }
   },
   
   move: () => {
