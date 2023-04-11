@@ -39,6 +39,7 @@ html, body {
   bottom: max(-3vh, -3vw);
   font-family: Impact;
   font-size: min(6vh, 6vw);
+  overflow-wrap: anywhere;
 }
 
 .popup {

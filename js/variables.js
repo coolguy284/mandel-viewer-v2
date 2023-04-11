@@ -29,6 +29,7 @@
   28. add basic math.js support
   29. add math.js js perturbation calculation mode
   30. remove unnecessary debug_log element
+  31. fix coord element wrapping
   add math.js inertia support
   add math.js webgl perturbation calculation mode
   localstorage support
