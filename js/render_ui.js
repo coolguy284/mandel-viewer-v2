@@ -10,7 +10,7 @@ function showCoordinates() {
   }
   
   if (SHOW_COORDINATES) {
-    if (typeof X == 'object') {
+    if (RENDER_METHOD == 6 || RENDER_METHOD == 7) {
       let coordPrecision = math.max(math.floor(-math.log10(SCALE)) + 3, 3);
       
       coords.innerHTML = `X: ${X.toFixed(coordPrecision)}, Y: ${Y.toFixed(coordPrecision)}, Scale: ${SCALE.toPrecision(4)}, Perturbation: ${usingPerturbation}`;

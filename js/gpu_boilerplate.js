@@ -6,6 +6,7 @@ function abortGPURendering() {
       break;
     
     case 4:
+    case 7:
       RENDER_METHOD = 1;
       break;
   }
@@ -61,6 +62,11 @@ function initShaderProgram() {
     case 4:
       vertexCode = mandelVertShader;
       fragmentCode = mandelFragShader;
+      break;
+    
+    case 7:
+      vertexCode = mandelVertPerturbationShader;
+      fragmentCode = mandelFragPerturbationShader;
       break;
   }
   
@@ -118,7 +124,7 @@ function setPositionAttribute(buffers) {
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
-function drawGLScene(buffers) {
+function drawGLScene(buffers, perturbationsNeeded) {
   ctx.clearColor(0.0, 0.0, 0.0, 0.0);
   ctx.clearDepth(1.0);
   ctx.enable(ctx.DEPTH_TEST);
@@ -155,19 +161,28 @@ function drawGLScene(buffers) {
   );
   ctx.uniform2fv(shaderProgramInfo.uniformLocations.iResolution, [canvas.width, canvas.height]);
   
-  ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [X, Y]);
-  ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, SCALE);
+  if (RENDER_METHOD == 7) {
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [math.number(X), math.number(Y)]);
+    ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, math.number(SCALE));
+  } else {
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [X, Y]);
+    ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, SCALE);
+  }
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.pallete, PALLETE);
   ctx.uniform1i(shaderProgramInfo.uniformLocations.logRender, LOG_RENDER);
-  ctx.uniform1i(shaderProgramInfo.uniformLocations.smoothIters, SMOOTH_ITERS);
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.smoothIters, Number(SMOOTH_ITERS));
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.maxIters, MAX_ITERS);
   ctx.uniform1f(shaderProgramInfo.uniformLocations.escapeRadius, ESCAPE_RADIUS);
   
-  ctx.uniform1i(shaderProgramInfo.uniformLocations.randomColorFuzzing, RANDOM_COLOR_FUZZING);
-  ctx.uniform1i(shaderProgramInfo.uniformLocations.doArtificialBanding, DO_ARTIFICIAL_BANDING);
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.randomColorFuzzing, Number(RANDOM_COLOR_FUZZING));
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.doArtificialBanding, Number(DO_ARTIFICIAL_BANDING));
   ctx.uniform1i(shaderProgramInfo.uniformLocations.artificialBandingFactor, ARTIFICIAL_BANDING_FACTOR);
+  
+  if (RENDER_METHOD == 7) {
+    setPerturbationVarsGL(X, Y, SCALE, canvas.height, perturbationsNeeded);
+  }
   
   let offset = 0;
   let vertexCount = 4;

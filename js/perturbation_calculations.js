@@ -166,7 +166,7 @@ function getMandelIterct_withZ(cx, cy, zx, zy, iterCount) {
   return iterCount;
 }
 
-function MathJS_PerturbJS_FillMandelPixelArray(x, y, scale, width, height, pixelData) {
+function getPerturbationVars(x, y, scale, height, useFloat) {
   let pixelScale = math.divide(scale, height);
   
   let inputPoints = [
@@ -175,7 +175,7 @@ function MathJS_PerturbJS_FillMandelPixelArray(x, y, scale, width, height, pixel
     { cx: x, cy: math.add(y, pixelScale) }, // y basis vector
   ];
   
-  let divergedZValues = MathJSGetMandelArrIterct(inputPoints, PERTURBATION_THRESHOLD_DOUBLE_SQ);
+  let divergedZValues = MathJSGetMandelArrIterct(inputPoints, useFloat ? PERTURBATION_THRESHOLD_FLOAT_SQ : PERTURBATION_THRESHOLD_DOUBLE_SQ);
   
   let cx = math.number(x), cy = math.number(y);
   
@@ -187,6 +187,12 @@ function MathJS_PerturbJS_FillMandelPixelArray(x, y, scale, width, height, pixel
     zy_y = math.number(math.subtract(divergedZValues[2].zy, divergedZValues[0].zy));
   
   let startingIters = divergedZValues[0].iters;
+  
+  return [cx, cy, zx_basis, zy_basis, zx_x, zx_y, zy_x, zy_y, startingIters];
+}
+
+function MathJS_PerturbJS_FillMandelPixelArray(x, y, scale, width, height, pixelData) {
+  let [ cx, cy, zx_basis, zy_basis, zx_x, zx_y, zy_x, zy_y, startingIters ] = getPerturbationVars(x, y, scale, height, false);
   
   for (var i = 0; i < width * height * 4; i += 4) {
     let px = Math.floor(i / 4) % width,
@@ -207,4 +213,18 @@ function MathJS_PerturbJS_FillMandelPixelArray(x, y, scale, width, height, pixel
     
     fillMandelPixelArray_setPallete(iters, pixelData, i);
   }
+}
+
+function setPerturbationVarsGL(x, y, scale, height, perturbationsNeeded) {
+  if (perturbationsNeeded) {
+    let [ cx, cy, zx_basis, zy_basis, zx_x, zx_y, zy_x, zy_y, startingIters ] = getPerturbationVars(x, y, scale, height, true);
+    
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [cx, cy]);
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.zcoords_basis, [zx_basis, zy_basis]);
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.zcoords_2ndx, [zx_x, zy_x]);
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.zcoords_2ndy, [zx_y, zy_y]);
+    ctx.uniform1i(shaderProgramInfo.uniformLocations.initialIterCount, startingIters);
+  }
+  
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.noPerturbation, Number(!perturbationsNeeded));
 }

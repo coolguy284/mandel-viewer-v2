@@ -65,7 +65,7 @@ function ensureCanvasContext(ctxName) {
       
       // create shaders if not in render method 2
       shaderProgram = initShaderProgram();
-
+      
       shaderProgramInfo = {
         attribLocations: {
           vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
@@ -89,6 +89,60 @@ function ensureCanvasContext(ctxName) {
           randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
           doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
           artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
+        },
+      };
+      break;
+    
+    case 'webgl-real2':
+      if (ctxType != 'webgl-real') {
+        if (ctxType == '2d') {
+          resetCanvas();
+        }
+        
+        ctxType = 'webgl-real';
+        ctx = canvas.getContext('webgl2');
+        
+        if (!ctx) {
+          alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
+          
+          abortGPURendering();
+          
+          return;
+        }
+      }
+      
+      // create shaders if not in render method 2
+      shaderProgram = initShaderProgram();
+      
+      shaderProgramInfo = {
+        attribLocations: {
+          vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+        },
+        uniformLocations: {
+          projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+          modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+          
+          iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
+          
+          coords: ctx.getUniformLocation(shaderProgram, 'coords'),
+          zcoords_basis: ctx.getUniformLocation(shaderProgram, 'zcoords_basis'),
+          zcoords_2ndx: ctx.getUniformLocation(shaderProgram, 'zcoords_2ndx'),
+          zcoords_2ndy: ctx.getUniformLocation(shaderProgram, 'zcoords_2ndy'),
+          scale: ctx.getUniformLocation(shaderProgram, 'scale'),
+          initialIterCount: ctx.getUniformLocation(shaderProgram, 'initialIterCount'),
+          
+          pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
+          logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
+          smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
+          
+          maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
+          escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
+          
+          randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
+          doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
+          artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
+          
+          noPerturbation: ctx.getUniformLocation(shaderProgram, 'noPerturbation'),
         },
       };
       break;
@@ -130,6 +184,10 @@ function ensureCtxAndVars() {
     case 4:
       ensureCanvasContext('webgl-real');
       break;
+    
+    case 7:
+      ensureCanvasContext('webgl-real2');
+      break;
   }
   
   switch (RENDER_METHOD) {
@@ -147,6 +205,10 @@ function ensureCtxAndVars() {
       ensureHighPrecVars(true);
       break;
   }
+}
+
+function perturbationCalulcationsNeeded(useFloat) {
+  return math.smaller(SCALE, math.multiply(useFloat ? PERTURBATION_THRESHOLD_FLOAT : PERTURBATION_THRESHOLD_DOUBLE, 20));
 }
 
 function render() {
@@ -226,15 +288,34 @@ function render() {
     case 6: {
       let pixelData = ctx.createImageData(width, height);
       
-      if (math.largerEq(SCALE, math.multiply(PERTURBATION_THRESHOLD_DOUBLE, 20))) {
-        usingPerturbation = false;
-        fillMandelPixelArray(math.number(X), math.number(Y), math.number(SCALE), width, height, pixelData);
-      } else {
-        usingPerturbation = true;
+      let perturbationsNeeded = perturbationCalulcationsNeeded(false);
+      usingPerturbation = perturbationsNeeded;
+      
+      if (perturbationsNeeded) {
         MathJS_PerturbJS_FillMandelPixelArray(X, Y, SCALE, width, height, pixelData);
+      } else {
+        fillMandelPixelArray(math.number(X), math.number(Y), math.number(SCALE), width, height, pixelData);
       }
       
       ctx.putImageData(pixelData, 0, 0);
+      
+      } break;
+    
+    case 7: {
+      if (!ctx) {
+        alert('Your browser or device does not support WebGL, reverting to CPU-based rendering');
+        
+        abortGPURendering();
+        
+        return;
+      }
+      
+      let perturbationsNeeded = perturbationCalulcationsNeeded(true);
+      usingPerturbation = perturbationsNeeded;
+      
+      let buffers = initGLBuffers();
+      
+      drawGLScene(buffers, perturbationsNeeded);
       
       } break;
   }
