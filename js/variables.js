@@ -33,13 +33,28 @@
   32. add math.js inertia support
   33. mark perturbation calculations as beta
   34. add math.js webgl perturbation calculation mode
+  35. slightly adjust perturbation thresholds
+  add log render and complete all features of perturbation mode
   localstorage support
+  proper ui size on mobile
+  add settings for artificial banding
+  add sliding precision interval
   
+  add escape key or reset button on settings to reset
+  
+  use screenspace texture instead of perfectly positioned 3d space texture
   proper webgl canvas resizing
+  
+  add multithreaded cpu mode
   
   bug when zooming after changing page zoom; zoom is relative to point outside screen (zooming in) or much closer to center (zooming out)
   bug on move and zoom; one frame delay on move and zoom before motion occurs, especially noticeable when render takes 1/5 second
   bug when switching between 2d and webgl canvases; deleting and recreating canvas, and opengl stuff, causes memory leak
+  
+  extended todo:
+    histogram coloring
+    calculate average image divergence ratio
+    add sliding iteration count interval
 */
 
 let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
@@ -79,7 +94,7 @@ let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to cal
   PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
 let WEBGL_CANVAS_RESIZE_WAIT = 100; // time in milliseconds to wait before resizing
 let AUTOHIDE_STARTING_PROMPT = false; // if true, hides startup prompt automatically
-let PERTURBATION_THRESHOLD_FLOAT = math.bignumber(4.768371584e-7 * 3), // threshold for perturbation check, currently scaled based on the minimum distance between floats above magnitude 4.0
+let PERTURBATION_THRESHOLD_FLOAT = math.bignumber(4.768371584e-7 * 10), // threshold for perturbation check, currently scaled based on the minimum distance between floats above magnitude 4.0
   PERTURBATION_THRESHOLD_DOUBLE = math.bignumber(8.881784197001252e-16 * 100), // threshold for perturbation check, currently scaled based on the minimum distance between doubles above magnitude 4.0
-  PERTURBATION_THRESHOLD_FLOAT_SQ = math.square(math.bignumber(4.768371584e-7 * 60)), // the squared versions of the thresholds, not the number squared though
+  PERTURBATION_THRESHOLD_FLOAT_SQ = math.square(math.bignumber(4.768371584e-7 * 10)), // the squared versions of the thresholds, not the number squared though
   PERTURBATION_THRESHOLD_DOUBLE_SQ = math.square(math.bignumber(8.881784197001252e-16 * 1e5));
