@@ -103,7 +103,6 @@ let events = {
   
   wheel: (wheelDelta) => {
     if (INERTIA) {
-      
       if (typeof X == 'object') {
         // math.js coordinates
         let scaleFactor = math.bignumber(ZOOM_SCALE_FACTOR ** wheelDelta);

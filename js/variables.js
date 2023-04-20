@@ -1,6 +1,7 @@
 let SHOW_SETTINGS = false; // whether settings menu is shown
 let SHOW_REMARKETING = false; // whether remarketing menu is shown
 let AUTOHIDE_STARTING_PROMPT = false; // if true, hides startup prompt automatically
+let PRESENTATION_MODE = false; // whether to remove the settings cogwheel and perform a predetermined mandelbrot zoom to interesting place #2 (one indexed)
 
 let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
 /*
@@ -84,6 +85,7 @@ let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for re
   37. add special keybind sequence for remarketing menu (easter egg 1)
   38. add visual indicator for konami code progress (easter egg 1)
   39. make konami code timeout after a while (easter egg 1)
+  40. add presentation mode zooming capability
   proper ui size on mobile
   localstorage support
   add log render and complete all features of perturbation mode
@@ -106,3 +108,48 @@ let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for re
     calculate average image divergence ratio
     add sliding iteration count interval
 */
+
+if (PRESENTATION_MODE) {
+  function performFancyZoom(x, y, endScale, zoomSpeed, startingDelay) {
+    AUTOHIDE_STARTING_PROMPT = true;
+    X = x;
+    Y = y;
+    SUBPIXEL_SCALE = 2;
+    INERTIA_ZOOM_FACTOR = 1;
+    document.body.removeChild(settings_btn);
+    
+    window.addEventListener('load', () => {
+      setTimeout(async () => {
+        pMouseX = Math.floor(realCanvasWidth / 2);
+        pMouseY = Math.floor(realCanvasHeight / 2);
+        
+        let scaleRatio = endScale / SCALE;
+        let zoomItersFloat = Math.log(scaleRatio) / Math.log(ZOOM_SCALE_FACTOR) / zoomSpeed;
+        let zoomIters = Math.floor(zoomItersFloat);
+        let zoomItersExtra = zoomItersFloat - zoomIters;
+        
+        for (var i = 0; i < zoomIters; i++) {
+          events.wheel(zoomSpeed);
+          X = x;
+          Y = y;
+          
+          await new Promise(r => setTimeout(r, 50));
+        }
+        
+        if (zoomItersExtra > 0) {
+          events.wheel(zoomSpeed * zoomItersExtra);
+          X = x;
+          Y = y;
+        }
+      }, startingDelay);
+    });
+  }
+  
+  let zoomX = -0.5480711427318311;
+  let zoomY = 0.5332889853014647;
+  let zoomEndScale = 0.000095;
+  let zoomSpeed = 20;
+  let zoomStartingDelay = 2000;
+  
+  performFancyZoom(zoomX, zoomY, zoomEndScale, zoomSpeed, zoomStartingDelay);
+}
