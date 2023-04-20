@@ -10,3 +10,5 @@ let shaderProgram, shaderProgramInfo;
 let startingPopupClosed = false;
 let usingPerturbation = false;
 let movementUnlocked = false;
+let remarketingInputSequenceSet = new Set(REMARKETING_INPUT_SEQUENCE);
+let remarketingInputCurrentIndex = 0;

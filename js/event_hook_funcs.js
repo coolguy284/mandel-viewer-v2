@@ -85,11 +85,9 @@ function closeSettings() {
 function closeStartingPopup() {
   startingPopupClosed = true;
   
+  calculateMovementUnlocked(!startingPopupClosed);
+  
   starting_popup.style.display = 'none';
-}
-
-function closeRemarketing() {
-  remarketing_popup.style.display = 'none';
 }
 
 function toggleRemarketing() {
@@ -98,6 +96,18 @@ function toggleRemarketing() {
   calculateMovementUnlocked(SHOW_REMARKETING);
   
   showRemarketing();
+}
+
+function revealRemarketing() {
+  if (movementUnlocked) {
+    toggleRemarketing();
+  }
+}
+
+function closeRemarketing() {
+  if (SHOW_REMARKETING) {
+    toggleRemarketing();
+  }
 }
 
 function setRemarketingPhase(phaseNum, elem) {
@@ -121,7 +131,7 @@ function calculateMovementUnlocked(showVar) {
   if (showVar) {
     movementUnlocked = false;
   } else {
-    if (SHOW_SETTINGS || SHOW_REMARKETING) {
+    if (SHOW_SETTINGS || SHOW_REMARKETING || !startingPopupClosed) {
       movementUnlocked = false;
     } else {
       movementUnlocked = true;

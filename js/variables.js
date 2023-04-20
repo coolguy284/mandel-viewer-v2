@@ -40,6 +40,7 @@ let PERTURBATION_THRESHOLD_FLOAT = math.bignumber(4.768371584e-7 * 10), // thres
   PERTURBATION_THRESHOLD_FLOAT_SQ = math.square(math.bignumber(4.768371584e-7 * 10)), // this one and the one below are the squared versions of the thresholds, not the number squared though
   PERTURBATION_THRESHOLD_DOUBLE_SQ = math.square(math.bignumber(8.881784197001252e-16 * 1e5));
 let SHOW_REMARKETING = false; // whether remarketing menu is shown
+let REMARKETING_INPUT_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA', 'Enter']; // typing the konami code (with "enter" replacing "start") will open the remarketing menu
 
 /*
   1. simple canvas test
@@ -78,10 +79,10 @@ let SHOW_REMARKETING = false; // whether remarketing menu is shown
   34. add math.js webgl perturbation calculation mode
   35. slightly adjust perturbation thresholds
   36. add remarketing menu (easter egg 1; currently inaccessible)
-  add special keybind for remarketing menu (easter egg 1)
-  add log render and complete all features of perturbation mode
-  localstorage support
+  37. add special keybind sequence for remarketing menu (easter egg 1)
   proper ui size on mobile
+  localstorage support
+  add log render and complete all features of perturbation mode
   add settings for artificial banding
   add sliding precision interval
   

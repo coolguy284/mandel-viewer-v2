@@ -71,10 +71,21 @@ window.addEventListener('wheel', e => {
 }, { passive: false });
 
 window.addEventListener('keydown', e => {
-  if (e.keyCode == 27) {
+  if (e.code == 'Escape') {
     // escape key pressed
     
     events.escapeKey();
+  } else if (remarketingInputSequenceSet.has(e.code)) {
+    if (e.code == REMARKETING_INPUT_SEQUENCE[remarketingInputCurrentIndex]) {
+      remarketingInputCurrentIndex++;
+      
+      if (remarketingInputCurrentIndex >= REMARKETING_INPUT_SEQUENCE.length) {console.log('success');
+        remarketingInputCurrentIndex = 0;
+        revealRemarketing();
+      }
+    } else {
+      remarketingInputCurrentIndex = 0;
+    }
   }
 });
 
