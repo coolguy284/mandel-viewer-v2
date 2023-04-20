@@ -76,46 +76,9 @@ window.addEventListener('keydown', e => {
     
     events.escapeKey();
   } else if (remarketingInputSequenceSet.has(e.code)) {
-    if (movementUnlocked) {
-      if (e.code == REMARKETING_INPUT_SEQUENCE[remarketingInputCurrentIndex]) {
-        remarketingInputCurrentIndex++;
-        
-        if (remarketingInputCurrentIndex >= REMARKETING_INPUT_SEQUENCE.length) {
-          remarketingInputCurrentIndex = 0;
-          
-          if (konami_progress.style.display == '') {
-            konami_progress.style.display = 'none';
-            konami_progress.innerHTML = '';
-          }
-          
-          revealRemarketing();
-        } else {
-          if (konami_progress.style.display == 'none') {
-            konami_progress.style.display = '';
-          }
-          
-          konami_progress.innerHTML = `${remarketingInputCurrentIndex}/${REMARKETING_INPUT_SEQUENCE.length}`;
-        }
-      } else {
-        if (remarketingInputCurrentIndex) {
-          remarketingInputCurrentIndex = 0;
-        }
-        
-        if (konami_progress.style.display == '') {
-          konami_progress.style.display = 'none';
-          konami_progress.innerHTML = '';
-        }
-      }
-    }
+    events.remarketing(e.code);
   } else {
-    if (remarketingInputCurrentIndex) {
-      remarketingInputCurrentIndex = 0;
-    }
-    
-    if (konami_progress.style.display == '') {
-      konami_progress.style.display = 'none';
-      konami_progress.innerHTML = '';
-    }
+    events.remarketing_fail();
   }
 });
 

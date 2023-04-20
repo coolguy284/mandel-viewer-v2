@@ -41,6 +41,7 @@ let PERTURBATION_THRESHOLD_FLOAT = math.bignumber(4.768371584e-7 * 10), // thres
   PERTURBATION_THRESHOLD_DOUBLE_SQ = math.square(math.bignumber(8.881784197001252e-16 * 1e5));
 let SHOW_REMARKETING = false; // whether remarketing menu is shown
 let REMARKETING_INPUT_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA', 'Enter']; // typing the konami code (with "enter" replacing "start") will open the remarketing menu
+let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for remarketing input sequence
 
 /*
   1. simple canvas test
@@ -81,6 +82,7 @@ let REMARKETING_INPUT_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown'
   36. add remarketing menu (easter egg 1; currently inaccessible)
   37. add special keybind sequence for remarketing menu (easter egg 1)
   38. add visual indicator for konami code progress (easter egg 1)
+  39. make konami code timeout after a while (easter egg 1)
   proper ui size on mobile
   localstorage support
   add log render and complete all features of perturbation mode

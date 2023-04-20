@@ -1,7 +1,30 @@
+function cancelRemarketing() {
+  if (remarketingInputCurrentIndex) {
+    remarketingInputCurrentIndex = 0;
+  }
+  
+  if (konami_progress.style.display == '') {
+    konami_progress.style.display = 'none';
+    konami_progress.innerHTML = '';
+  }
+}
+
+function cancelRemarketingTimeout() {
+  if (remarketingInputTimeout) {
+    clearTimeout(remarketingInputTimeout);
+    
+    remarketingInputTimeout = null;
+  }
+}
+
+function cancelRemarketingAndTimeout() {
+  cancelRemarketingTimeout();
+  
+  cancelRemarketing();
+}
+
 let events = {
   mouseDown: (x, y) => {
-    let currentTime = performance.now();
-    
     mouseDown = true;
     
     pMouseX = x;
@@ -180,5 +203,44 @@ let events = {
       
       render();
     }
+  },
+  
+  remarketing: (evtCode) => {
+    if (movementUnlocked) {
+      if (evtCode == REMARKETING_INPUT_SEQUENCE[remarketingInputCurrentIndex]) {
+        remarketingInputCurrentIndex++;
+        
+        if (remarketingInputCurrentIndex >= REMARKETING_INPUT_SEQUENCE.length) {
+          remarketingInputCurrentIndex = 0;
+          
+          if (konami_progress.style.display == '') {
+            konami_progress.style.display = 'none';
+            konami_progress.innerHTML = '';
+          }
+          
+          cancelRemarketingTimeout();
+          
+          revealRemarketing();
+        } else {
+          if (konami_progress.style.display == 'none') {
+            konami_progress.style.display = '';
+          }
+          
+          konami_progress.innerHTML = `${remarketingInputCurrentIndex}/${REMARKETING_INPUT_SEQUENCE.length}`;
+          
+          cancelRemarketingTimeout();
+          
+          remarketingInputTimeout = setTimeout(() => {
+            cancelRemarketing();
+          }, REMARKETING_INPUT_SEQUENCE_TIMEOUT);
+        }
+      } else {
+        cancelRemarketingAndTimeout();
+      }
+    }
+  },
+  
+  remarketing_fail: () => {
+    cancelRemarketingAndTimeout();
   },
 };
