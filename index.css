@@ -112,7 +112,7 @@ input[type = checkbox] {
   align-self: center;
 }
 
-#settings_button, #settings_close_btn, #remarketing_close_btn, #remarketing_popup_phase_2_back_btn {
+#settings_btn, #settings_close_btn, #remarketing_close_btn, #remarketing_popup_phase_2_back_btn {
   position: absolute;
   border: none;
   background: none;
@@ -121,7 +121,7 @@ input[type = checkbox] {
   height: 3vw;
 }
 
-#settings_button {
+#settings_btn {
   bottom: 0.5vw;
   right: 0.5vw;
 }
@@ -139,7 +139,7 @@ input[type = checkbox] {
   padding: 0.4vw;
 }
 
-#settings_button svg, #settings_close_btn svg, #remarketing_close_btn svg {
+#settings_btn svg, #settings_close_btn svg, #remarketing_close_btn svg {
   position: absolute;
   left: 0;
   top: 0;

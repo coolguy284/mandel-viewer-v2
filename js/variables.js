@@ -1,3 +1,7 @@
+let SHOW_SETTINGS = false; // whether settings menu is shown
+let SHOW_REMARKETING = false; // whether remarketing menu is shown
+let AUTOHIDE_STARTING_PROMPT = false; // if true, hides startup prompt automatically
+
 let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
 /*
   interesting places:
@@ -17,7 +21,6 @@ let MAX_ITERS = 1024; // depth of mandelbrot calculation
 let ESCAPE_RADIUS = 256.0; // distance beyond which a point is considered escaped from the mandelbrot set
 let INERTIA = true; // smooth movement and scroll
 let SHOW_COORDINATES = false; // whether coordinates are shown in bottom right hand corner
-let SHOW_SETTINGS = false; // whether settings menu is shown
 
 let RANDOM_COLOR_FUZZING = true, // very slight banding is visible even with smoothed iteration count, with random fuzzing based on the real floating point value of the iteration count the banding becomes completely invisible
   DO_ARTIFICIAL_BANDING = false, // quantize iteration count after calculating smooth iteration count, primarily used to test random color fuzzing
@@ -34,12 +37,10 @@ let INERTIA_SLOWDOWN = 10, // pixel speed amount that is decreased every second
 let PREV_MOUSE_BUFFER_LENGTH = 3, // number of previous mouse inputs used to calculate average speed to apply to canvas; only used with inertia
   PREV_MOUSE_BUFFER_TIMESPAN = 0.1 * 1000; // maximum time in past to include mouse inputs in the previous mouse buffer; only used with inertia
 let WEBGL_CANVAS_RESIZE_WAIT = 100; // time in milliseconds to wait before resizing
-let AUTOHIDE_STARTING_PROMPT = false; // if true, hides startup prompt automatically
 let PERTURBATION_THRESHOLD_FLOAT = math.bignumber(4.768371584e-7 * 10), // threshold for perturbation check, currently scaled based on the minimum distance between floats above magnitude 4.0
   PERTURBATION_THRESHOLD_DOUBLE = math.bignumber(8.881784197001252e-16 * 100), // threshold for perturbation check, currently scaled based on the minimum distance between doubles above magnitude 4.0
   PERTURBATION_THRESHOLD_FLOAT_SQ = math.square(math.bignumber(4.768371584e-7 * 10)), // this one and the one below are the squared versions of the thresholds, not the number squared though
   PERTURBATION_THRESHOLD_DOUBLE_SQ = math.square(math.bignumber(8.881784197001252e-16 * 1e5));
-let SHOW_REMARKETING = false; // whether remarketing menu is shown
 let REMARKETING_INPUT_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA', 'Enter']; // typing the konami code (with "enter" replacing "start") will open the remarketing menu
 let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for remarketing input sequence
 
