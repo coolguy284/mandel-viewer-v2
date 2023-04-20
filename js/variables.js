@@ -80,6 +80,7 @@ let REMARKETING_INPUT_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown'
   35. slightly adjust perturbation thresholds
   36. add remarketing menu (easter egg 1; currently inaccessible)
   37. add special keybind sequence for remarketing menu (easter egg 1)
+  38. add visual indicator for konami code progress (easter egg 1)
   proper ui size on mobile
   localstorage support
   add log render and complete all features of perturbation mode

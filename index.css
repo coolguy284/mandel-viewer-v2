@@ -35,12 +35,20 @@ html, body {
 
 #coords {
   position: absolute;
-  color: white;
   left: 1vw;
   bottom: max(-3vh, -3vw);
+  color: white;
   font-family: Impact;
   font-size: min(6vh, 6vw);
   overflow-wrap: anywhere;
+}
+
+#konami_progress {
+  position: absolute;
+  right: 5vw;
+  bottom: max(-1vh, -1vw);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: min(4vh, 4vw);
 }
 
 .popup {
