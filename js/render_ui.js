@@ -40,3 +40,15 @@ function showSettings() {
     }
   }
 }
+
+function showRemarketing() {
+  if (SHOW_REMARKETING) {
+    if (remarketing_popup.style.display == 'none') {
+      remarketing_popup.style.display = '';
+    }
+  } else {
+    if (remarketing_popup.style.display == '') {
+      remarketing_popup.style.display = 'none';
+    }
+  }
+}

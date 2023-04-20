@@ -9,3 +9,4 @@ let ctxType, ctx;
 let shaderProgram, shaderProgramInfo;
 let startingPopupClosed = false;
 let usingPerturbation = false;
+let movementUnlocked = false;

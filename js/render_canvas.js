@@ -321,6 +321,4 @@ function render() {
   }
   
   showCoordinates();
-  
-  showSettings();
 }

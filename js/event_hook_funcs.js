@@ -69,11 +69,15 @@ function toggleSettings() {
   
   SHOW_SETTINGS = !SHOW_SETTINGS;
   
+  calculateMovementUnlocked(SHOW_SETTINGS);
+  
   showSettings();
 }
 
 function closeSettings() {
   SHOW_SETTINGS = false;
+  
+  calculateMovementUnlocked(SHOW_SETTINGS);
   
   showSettings();
 }
@@ -82,4 +86,45 @@ function closeStartingPopup() {
   startingPopupClosed = true;
   
   starting_popup.style.display = 'none';
+}
+
+function closeRemarketing() {
+  remarketing_popup.style.display = 'none';
+}
+
+function toggleRemarketing() {
+  SHOW_REMARKETING = !SHOW_REMARKETING;
+  
+  calculateMovementUnlocked(SHOW_REMARKETING);
+  
+  showRemarketing();
+}
+
+function setRemarketingPhase(phaseNum, elem) {
+  switch (phaseNum) {
+    case 0:
+      remarketing_popup_phase_1.style.display = '';
+      remarketing_popup_phase_2.style.display = 'none';
+      break;
+    
+    case 1:
+      remarketing_popup_phase_1.style.display = 'none';
+      remarketing_popup_phase_2.style.display = '';
+      
+      remarketing_wiki_entry_title.innerHTML = elem.innerHTML;
+      remarketing_wiki_entry_contents.innerHTML = REMARKETING_DATA[elem.innerHTML];
+      break;
+  }
+}
+
+function calculateMovementUnlocked(showVar) {
+  if (showVar) {
+    movementUnlocked = false;
+  } else {
+    if (SHOW_SETTINGS || SHOW_REMARKETING) {
+      movementUnlocked = false;
+    } else {
+      movementUnlocked = true;
+    }
+  }
 }

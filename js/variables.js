@@ -34,6 +34,8 @@
   33. mark perturbation calculations as beta
   34. add math.js webgl perturbation calculation mode
   35. slightly adjust perturbation thresholds
+  36. add remarketing menu (easter egg 1; currently inaccessible)
+  add special keybind for remarketing menu (easter egg 1)
   add log render and complete all features of perturbation mode
   localstorage support
   proper ui size on mobile
@@ -96,5 +98,6 @@ let WEBGL_CANVAS_RESIZE_WAIT = 100; // time in milliseconds to wait before resiz
 let AUTOHIDE_STARTING_PROMPT = false; // if true, hides startup prompt automatically
 let PERTURBATION_THRESHOLD_FLOAT = math.bignumber(4.768371584e-7 * 10), // threshold for perturbation check, currently scaled based on the minimum distance between floats above magnitude 4.0
   PERTURBATION_THRESHOLD_DOUBLE = math.bignumber(8.881784197001252e-16 * 100), // threshold for perturbation check, currently scaled based on the minimum distance between doubles above magnitude 4.0
-  PERTURBATION_THRESHOLD_FLOAT_SQ = math.square(math.bignumber(4.768371584e-7 * 10)), // the squared versions of the thresholds, not the number squared though
+  PERTURBATION_THRESHOLD_FLOAT_SQ = math.square(math.bignumber(4.768371584e-7 * 10)), // this one and the one below are the squared versions of the thresholds, not the number squared though
   PERTURBATION_THRESHOLD_DOUBLE_SQ = math.square(math.bignumber(8.881784197001252e-16 * 1e5));
+let SHOW_REMARKETING = false; // whether remarketing menu is shown

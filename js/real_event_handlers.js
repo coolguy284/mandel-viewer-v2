@@ -3,8 +3,13 @@ window.addEventListener('load', () => {
     closeStartingPopup();
   }
   
+  setupRemarketing();
+  
   resizeCanvas();
   render();
+  
+  showSettings();
+  showRemarketing();
 });
 
 let webGLResizeTimeout;
@@ -27,7 +32,7 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('mousedown', e => {
-  if (!SHOW_SETTINGS && startingPopupClosed) {
+  if (movementUnlocked && startingPopupClosed) {
     touchPoints.mouse = { x: e.x, y: e.y };
     
     touchEvents.down();
@@ -35,7 +40,7 @@ window.addEventListener('mousedown', e => {
 });
 
 window.addEventListener('mouseup', e => {
-  if (!SHOW_SETTINGS && startingPopupClosed || mouseDown) {
+  if (movementUnlocked && startingPopupClosed || mouseDown) {
     delete touchPoints.mouse;
     
     touchEvents.up();
@@ -54,7 +59,7 @@ window.addEventListener('mousemove', e => {
 });
 
 window.addEventListener('wheel', e => {
-  if (!SHOW_SETTINGS && startingPopupClosed) {
+  if (movementUnlocked && startingPopupClosed) {
     if (pMouseX != e.x || pMouseY != e.y) {
       events.mouseMove(e.x, e.y);
     }
@@ -74,7 +79,7 @@ window.addEventListener('keydown', e => {
 });
 
 window.addEventListener('touchstart', e => {
-  if (!SHOW_SETTINGS && startingPopupClosed) {
+  if (movementUnlocked && startingPopupClosed) {
     for (let touch of e.changedTouches) {
       touchPoints[touch.identifier] = { x: touch.pageX, y: touch.pageY };
     }
@@ -86,7 +91,7 @@ window.addEventListener('touchstart', e => {
 });
 
 window.addEventListener('touchmove', e => {
-  if (!SHOW_SETTINGS && startingPopupClosed) {
+  if (movementUnlocked && startingPopupClosed) {
     for (let touch of e.changedTouches) {
       touchPoints[touch.identifier].px = touchPoints[touch.identifier].x;
       touchPoints[touch.identifier].py = touchPoints[touch.identifier].y;
@@ -101,7 +106,7 @@ window.addEventListener('touchmove', e => {
 }, { passive: false });
 
 let touchEndHandler = e => {
-  if (!SHOW_SETTINGS && startingPopupClosed || Object.keys(touchPoints).length > 0) {
+  if (movementUnlocked && startingPopupClosed || Object.keys(touchPoints).length > 0) {
     for (let touch of e.changedTouches) {
       delete touchPoints[touch.identifier];
     }
