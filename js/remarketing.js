@@ -1,6 +1,6 @@
 let REMARKETING_DATA = {
   '<strong>Summary</strong>':
-    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To ensure intent is properly distingished from custom intent, standard practices of standard remarketing must be used. Optionally, dynamic remarketing can be used to speed up the process, although it is important to ensure similar audiences from dynamic remarketing. To achieve this, the affinity must be increased, and the custom affinity decreased, resulting in a decrease in cost per click but not enhanced cost per click or target cost per click. The return on ad spend must be carefully matched with the net profit value, and this is easier to remarket if target return on ad spend is used. The marketing funnel is an important system of sequencing frameworks, and clarifies the affinity of Ads Creative Studio versus Video Creation Tools in Google Ads. The ad creative must be used to build sequential assets powered by technology or funnel, which will improve the view through rate and lift. The tCPI, tCPA, and tROAS must be optimized for the marketing funnel, accounting for performance fluctuations in the target cost per interaction, target cost per acquisition, and target return on ad spend. This will increase the KPIs and thus the view through rate and lift by around 30%.',
+    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To ensure intent is properly distingished from custom intent, standard practices of standard remarketing must be used. Optionally, dynamic remarketing can be used to speed up the process, although it is important to ensure similar audiences from dynamic remarketing. To achieve this, the affinity must be increased, and the custom affinity decreased, resulting in a decrease in cost per click but not enhanced cost per click or target cost per click. The return on ad spend must be carefully matched with the net profit value, and this is easier to remarket if target return on ad spend is used. The marketing funnel is an important system of sequencing frameworks, and clarifies the affinity of Ads Creative Studio versus Video Creation Tools in Google Ads. The ad creative must be used to build sequential assets powered by technology or funnel, which will improve the view through rate and lift. The tCPI, tCPA, and tROAS must be optimized for the marketing funnel, accounting for performance fluctuations in the target cost per interaction, target cost per acquisition, and target return on ad spend. This will increase the KPIs and thus the view through rate and lift by around 30%. Cost-per-acquisition (CPA) performance targets can be used to match the target impression share, and maximize conversions versus maximize conversion value that will occur with native and non native inventory.',
   'intent':
     'NOT to be confused with "custom intent", "intent" is very useful for judging a customer\'s intent.',
   'custom intent':
@@ -51,6 +51,14 @@ let REMARKETING_DATA = {
     'If the tROAS is not lit, appearance will appear.',
   'KPIs':
     'It is sometimes hard to reach key KPIs, but they must be achieved to ensure the tROAS will be achieved in a timely manner.',
+  'cost-per-acquisition (CPA) performance targets':
+    'The cost might be hard to acuqire, but if successful, performance targets can be achieved.',
+  'target impression share':
+    'To maximize the share of targets, they can be made.',
+  'maximize conversions vs maximize conversion value':
+    'Unraid works well for this.',
+  'native and non native inventory':
+    'It helps to know the difference between native and native inventory and non native.',
 };
 
 function setupRemarketing() {
