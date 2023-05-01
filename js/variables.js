@@ -87,6 +87,7 @@ let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for re
   39. make konami code timeout after a while (easter egg 1)
   40. add presentation mode zooming capability
   41. add more remarketing things (easter egg 1)
+  42. self reflection (easter egg 2)
   proper ui size on mobile
   localstorage support
   add log render and complete all features of perturbation mode
