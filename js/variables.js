@@ -96,6 +96,7 @@ let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key wi
   42. self reflection (easter egg 2)
   43. add the ability to crash the mandelbrot set (easter egg 3)
   44. add escape key to uncrash the mandelbrot set (easter egg 3)
+  45. remarketing now closed or backed by escape key (easter egg 1) and now can only crash mandel when movement is unlocked (easter egg 3)
   add crashing to other render modes (easter egg 3)
   proper ui size on mobile
   localstorage support

@@ -169,6 +169,12 @@ let events = {
       closeStartingPopup();
     } else if (SHOW_SETTINGS) {
       closeSettings();
+    } else if (SHOW_REMARKETING) {
+      if (remarketing_popup_phase_2.style.display == '') {
+        setRemarketingPhase(0);
+      } else {
+        closeRemarketing();
+      }
     } else if (CRASHED) {
       if (crashEscapeTimeout) {
         clearTimeout(crashEscapeTimeout);
@@ -269,16 +275,18 @@ let events = {
   },
   
   crashCheck: (evtCode) => {
-    crashKeys.push(evtCode);
-    crashVal = new Set(crashKeys).size;
-    
-    if (crashVal >= CRASH_KEYS_THRESHOLD) {
-      // mandelbrot set has crashed. please see the manual to continue. (crash again to reset)
-      crashKeys.splice(0, Infinity);
-      crashVal = 0;
-      toggleCrashed();
-    } else {
-      crashLoop();
+    if (movementUnlocked) {
+      crashKeys.push(evtCode);
+      crashVal = new Set(crashKeys).size;
+      
+      if (crashVal >= CRASH_KEYS_THRESHOLD) {
+        // mandelbrot set has crashed. please see the manual to continue. (crash again to reset)
+        crashKeys.splice(0, Infinity);
+        crashVal = 0;
+        toggleCrashed();
+      } else {
+        crashLoop();
+      }
     }
   },
 };
