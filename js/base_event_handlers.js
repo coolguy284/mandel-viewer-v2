@@ -242,4 +242,18 @@ let events = {
   remarketing_fail: () => {
     cancelRemarketingAndTimeout();
   },
+  
+  crashCheck: (evtCode) => {
+    crashKeys.push(evtCode);
+    crashVal = new Set(crashKeys).size;console.log(crashKeys, crashVal);
+    
+    if (crashVal >= CRASH_KEYS_THRESHOLD) {
+      // mandelbrot set has crashed. please see the manual to continue. (crash again to reset)
+      crashKeys.splice(0, Infinity);
+      crashVal = 0;console.log(crashKeys, crashVal);
+      toggleCrashed();
+    } else {
+      crashLoop();
+    }
+  },
 };

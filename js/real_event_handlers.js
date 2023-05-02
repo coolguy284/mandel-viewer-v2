@@ -75,11 +75,15 @@ window.addEventListener('keydown', e => {
     // escape key pressed
     
     events.escapeKey();
-  } else if (remarketingInputSequenceSet.has(e.code)) {
-    events.remarketing(e.code);
   } else {
-    events.remarketing_fail();
+    if (remarketingInputSequenceSet.has(e.code)) {
+      events.remarketing(e.code);
+    } else {
+      events.remarketing_fail();
+    }
   }
+  
+  events.crashCheck(e.code);
 });
 
 window.addEventListener('touchstart', e => {

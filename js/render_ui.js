@@ -22,6 +22,27 @@ function showCoordinates() {
   }
 }
 
+function handleAudioState() {
+  if (CRASHED) {
+    if (audioState == 0) {
+      audioState = Math.random() < 0.25 ? 2 : 1;
+      if (audioState == 1) {
+        audioElement = new Audio('media/hum.mp3');
+      } else {
+        audioElement = new Audio('media/sorting algos.mp3');
+      }
+      audioElement.loop = true;
+      audioElement.play();
+    }
+  } else {
+    if (audioState > 0) {
+      audioElement.pause();
+      audioElement = null;
+      audioState = 0;
+    }
+  }
+}
+
 function showSettings() {
   if (SHOW_SETTINGS) {
     if (settings.style.display == 'none') {

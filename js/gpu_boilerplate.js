@@ -182,6 +182,8 @@ function drawGLScene(buffers, perturbationsNeeded) {
   
   if (RENDER_METHOD == 7) {
     setPerturbationVarsGL(X, Y, SCALE, canvas.height, perturbationsNeeded);
+  } else {
+    ctx.uniform1i(shaderProgramInfo.uniformLocations.crashed, Number(CRASHED));
   }
   
   let offset = 0;

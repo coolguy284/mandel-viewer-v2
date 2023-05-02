@@ -13,3 +13,7 @@ let movementUnlocked = false;
 let remarketingInputSequenceSet = new Set(REMARKETING_INPUT_SEQUENCE);
 let remarketingInputCurrentIndex = 0;
 let remarketingInputTimeout = null;
+let audioState = 0; // 0 for stopped, 1 for hum, 2 for sorting algos
+let audioElement = null;
+let crashVal = 0;
+let crashKeys = [];

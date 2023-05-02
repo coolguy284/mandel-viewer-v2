@@ -89,6 +89,8 @@ function ensureCanvasContext(ctxName) {
           randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
           doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
           artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
+          
+          crashed: ctx.getUniformLocation(shaderProgram, 'crashed'),
         },
       };
       break;
@@ -321,4 +323,6 @@ function render() {
   }
   
   showCoordinates();
+  
+  handleAudioState();
 }

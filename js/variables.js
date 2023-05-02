@@ -2,6 +2,7 @@ let SHOW_SETTINGS = false; // whether settings menu is shown
 let SHOW_REMARKETING = false; // whether remarketing menu is shown
 let AUTOHIDE_STARTING_PROMPT = false; // if true, hides startup prompt automatically
 let PRESENTATION_MODE = false; // whether to remove the settings cogwheel and perform a predetermined mandelbrot zoom to interesting place #2 (one indexed)
+let CRASHED = false; // whether the mandelbrot set is crashed
 
 let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
 /*
@@ -44,6 +45,8 @@ let PERTURBATION_THRESHOLD_FLOAT = math.bignumber(4.768371584e-7 * 10), // thres
   PERTURBATION_THRESHOLD_DOUBLE_SQ = math.square(math.bignumber(8.881784197001252e-16 * 1e5));
 let REMARKETING_INPUT_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA', 'Enter']; // typing the konami code (with "enter" replacing "start") will open the remarketing menu
 let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for remarketing input sequence
+let CRASH_KEYS_THRESHOLD = 10; // value that the crash threshold must be at for a crash
+let CRASH_KEYS_DROP_DELAY = 100; // delay in milliseconds before crash threshold drops
 
 /*
   1. simple canvas test
@@ -88,6 +91,9 @@ let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for re
   40. add presentation mode zooming capability
   41. add more remarketing things (easter egg 1)
   42. self reflection (easter egg 2)
+  43. add the ability to crash the mandelbrot set (easter egg 3)
+  add escape key to uncrash the mandelbrot set (easter egg 3)
+  add crashing to other render modes (easter egg 3)
   proper ui size on mobile
   localstorage support
   add log render and complete all features of perturbation mode

@@ -138,3 +138,13 @@ function calculateMovementUnlocked(showVar) {
     }
   }
 }
+
+function toggleCrashed() {
+  CRASHED = !CRASHED;
+  render();
+}
+
+function stopCrash() {
+  CRASHED = false;
+  render();
+}
