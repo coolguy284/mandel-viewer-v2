@@ -47,6 +47,9 @@ let REMARKETING_INPUT_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown'
 let REMARKETING_INPUT_SEQUENCE_TIMEOUT = 5000; // timeout in milliseconds for remarketing input sequence
 let CRASH_KEYS_THRESHOLD = 10; // value that the crash threshold must be at for a crash
 let CRASH_KEYS_DROP_DELAY = 100; // delay in milliseconds before crash threshold drops
+let CRASH_KEYS_ESCAPE_THRESHOLD = 3; // number of times escape key must be pressed to stop crash
+let CRASH_KEYS_ESCAPE_TIMEOUT = 1000; // timeout in milliseconds before escape cancellation of crashing is itself cancelled
+let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key will be locked after successful escape-key based uncrash
 
 /*
   1. simple canvas test
@@ -92,7 +95,7 @@ let CRASH_KEYS_DROP_DELAY = 100; // delay in milliseconds before crash threshold
   41. add more remarketing things (easter egg 1)
   42. self reflection (easter egg 2)
   43. add the ability to crash the mandelbrot set (easter egg 3)
-  add escape key to uncrash the mandelbrot set (easter egg 3)
+  44. add escape key to uncrash the mandelbrot set (easter egg 3)
   add crashing to other render modes (easter egg 3)
   proper ui size on mobile
   localstorage support

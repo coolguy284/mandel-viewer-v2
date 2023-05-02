@@ -169,7 +169,32 @@ let events = {
       closeStartingPopup();
     } else if (SHOW_SETTINGS) {
       closeSettings();
-    } else {
+    } else if (CRASHED) {
+      if (crashEscapeTimeout) {
+        clearTimeout(crashEscapeTimeout);
+        crashEscapeTimeout = null;
+      }
+      
+      crashEscapeVal++;
+      
+      if (crashEscapeVal >= CRASH_KEYS_ESCAPE_THRESHOLD) {
+        crashEscapeVal = 0;
+        stopCrash();
+        escapeKeyEnabled = false;
+        if (escapeKeyLockoutTimeout) {
+          escapeKeyLockoutTimeout = null;
+        }
+        escapeKeyLockoutTimeout = setTimeout(() => {
+          escapeKeyEnabled = true;
+          escapeKeyLockoutTimeout = null;
+        }, CRASH_KEYS_ESCAPE_LOCKOUT);
+      } else {
+        crashEscapeTimeout = setTimeout(() => {
+          crashEscapeVal = 0;
+          crashEscapeTimeout = null;
+        }, CRASH_KEYS_ESCAPE_TIMEOUT);
+      }
+    } else if (escapeKeyEnabled) {
       if (INERTIA) {
         velX = 0;
         velY = 0;
@@ -245,12 +270,12 @@ let events = {
   
   crashCheck: (evtCode) => {
     crashKeys.push(evtCode);
-    crashVal = new Set(crashKeys).size;console.log(crashKeys, crashVal);
+    crashVal = new Set(crashKeys).size;
     
     if (crashVal >= CRASH_KEYS_THRESHOLD) {
       // mandelbrot set has crashed. please see the manual to continue. (crash again to reset)
       crashKeys.splice(0, Infinity);
-      crashVal = 0;console.log(crashKeys, crashVal);
+      crashVal = 0;
       toggleCrashed();
     } else {
       crashLoop();

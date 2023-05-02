@@ -17,3 +17,7 @@ let audioState = 0; // 0 for stopped, 1 for hum, 2 for sorting algos
 let audioElement = null;
 let crashVal = 0;
 let crashKeys = [];
+let crashEscapeVal = 0;
+let crashEscapeTimeout = null;
+let escapeKeyEnabled = true;
+let escapeKeyLockoutTimeout = null;

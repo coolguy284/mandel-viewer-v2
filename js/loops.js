@@ -140,7 +140,7 @@ async function crashLoop() {
   
   while (crashKeys.length > 0) {
     crashKeys.splice(0, 1);
-    crashVal = new Set(crashKeys).size;console.log(crashKeys, crashVal);
+    crashVal = new Set(crashKeys).size;
     await new Promise(r => setTimeout(r, CRASH_KEYS_DROP_DELAY));
   }
   
