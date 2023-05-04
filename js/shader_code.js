@@ -153,9 +153,6 @@ let mandelVertTestShader = `
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
     
-    float altNormPx = px / iResolution.x;
-    float altNormPy = py / iResolution.y;
-    
     float normPx = (px - iResolution.x / 2.0) / iResolution.y;
     float normPy = (py - iResolution.y / 2.0) / iResolution.y;
     
@@ -167,10 +164,12 @@ let mandelVertTestShader = `
         doRest = false;
       }
       
-      normPx *= 0.9;
-      normPx += sin(normPy * 50.0f) * 0.02f;
-      normPy -= sin(normPx * 200.0f) * 0.005f;
-      normPx = -pow(-normPx + 0.5f, 1.3f) + 0.5f;
+      if (doRest) {
+        normPx *= 0.9;
+        normPx += sin(normPy * 50.0f) * 0.02f;
+        normPy -= sin(normPx * 200.0f) * 0.005f;
+        normPx = -pow(-normPx + 0.5f, 1.3f) + 0.5f;
+      }
     }
     
     if (doRest) {
@@ -239,6 +238,9 @@ let mandelVertTestShader = `
         outColor.g = outColor.g * 0.15f + 0.3f;
       }
       
+      float altNormPx = px / iResolution.x;
+      float altNormPy = py / iResolution.y;
+      
       if (altNormPx > 0.795f - hashWrap(altNormPy * 3723.0f + altNormPx * 5421.0f) / 50.0f - pow(2.0f, altNormPy * 200.0f - 198.0f) / 10.0f && altNormPy > 0.8f - hashWrap(altNormPx * 3723.0f + altNormPy * 5421.0f) / 50.0f - pow(2.0f, altNormPx * 200.0f - 198.0f) / 10.0f) {
         outColor.r = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x)))) / 65536.0f;
         outColor.g = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x + gl_FragCoord.y * 329.0f + 35122.0f)))) / 65536.0f;
@@ -277,9 +279,26 @@ let mandelVertTestShader = `
   uniform int doArtificialBanding;
   uniform int artificialBandingFactor;
   
+  uniform int crashed;
+  
   uniform int noPerturbation;
   
   out vec4 outColor;
+  
+  // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+  // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
+  int hash(int x) {
+    x = x + (x << 10) << 0;
+    x ^= x >> 6;
+    x = x + (x << 3) << 0;
+    x ^= x >> 11;
+    x = x + (x << 15) << 0;
+    return x & 0xffff;
+  }
+  
+  float hashWrap(float x) {
+    return float(hash(int(x))) / 65536.0f;
+  }
   
   vec3 getRainbowIntIterColor(int iters) {
     if (iters < 0 || iters >= maxIters) return vec3(0.0, 0.0, 0.0);
@@ -375,65 +394,99 @@ let mandelVertTestShader = `
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
     
+    float altNormPx = px / iResolution.x;
+    float altNormPy = py / iResolution.y;
+    
     float normPx = (px - iResolution.x / 2.0) / iResolution.y;
     float normPy = (py - iResolution.y / 2.0) / iResolution.y;
     
-    float cx;
-    float cy;
+    bool doRest = true;
     
-    switch (logRender) {
-      case 0:
-        cx = normPx * scale + coords.x;
-        cy = normPy * scale + coords.y;
-        break;
+    if (crashed > 0) {
+      if (normPx > 0.55f) {
+        outColor = vec4(0.5f + sin(gl_FragCoord.x * 1.5f) * 0.2f, 0.3f, 0.0f, 1.0f);
+        doRest = false;
+      }
       
-      case 1: {
-        float dist = sqrt(normPx * normPx + normPy * normPy);
-        float ang = atan(normPy, normPx); // 2 argument atan is just the standard atan2
-        
-        cx = cos(ang) * (pow(2.0, dist * (-log2(scale) + 4.0)) - 1.0) * scale + coords.x;
-        cy = sin(ang) * (pow(2.0, dist * (-log2(scale) + 4.0)) - 1.0) * scale + coords.y;
-        } break;
-      
-      case 2: {
-        float dist = sqrt(normPx * normPx + normPy * normPy) * 2.0;
-        float ang = atan(normPy, normPx); // 2 argument atan is just the standard atan2
-        
-        cx = cos(ang) * (pow(2.0, dist * (-log2(min(scale, 1.0)) + 1.7)) - 1.0) * scale + coords.x;
-        cy = sin(ang) * (pow(2.0, dist * (-log2(min(scale, 1.0)) + 1.7)) - 1.0) * scale + coords.y;
-        } break;
+      if (doRest) {
+        normPx *= 0.9;
+        normPx += sin(normPy * 50.0f) * 0.02f;
+        normPy -= sin(normPx * 200.0f) * 0.005f;
+        normPx = -pow(-normPx + 0.5f, 1.3f) + 0.5f;
+      }
     }
     
-    float iters = getMandelIterctNormal(cx, cy);
-    
-    if (pallete >= 0 && pallete <= 2) {
-      float colorVal = min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
+    if (doRest) {
+      float cx;
+      float cy;
       
-      float processedColorVal;
-      
-      if (iters < float(maxIters)) {
-        processedColorVal = colorVal / 256.0;
-      } else {
-        processedColorVal = 0.0;
-      }
-      
-      switch (pallete) {
+      switch (logRender) {
         case 0:
-          outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
+          cx = normPx * scale + coords.x;
+          cy = normPy * scale + coords.y;
           break;
         
-        case 1:
-          outColor = vec4(0.0, processedColorVal, 0.0, 1.0);
-          break;
+        case 1: {
+          float dist = sqrt(normPx * normPx + normPy * normPy);
+          float ang = atan(normPy, normPx); // 2 argument atan is just the standard atan2
+          
+          cx = cos(ang) * (pow(2.0, dist * (-log2(scale) + 4.0)) - 1.0) * scale + coords.x;
+          cy = sin(ang) * (pow(2.0, dist * (-log2(scale) + 4.0)) - 1.0) * scale + coords.y;
+          } break;
         
-        case 2:
-          outColor = vec4(processedColorVal, 0.0, 0.0, 1.0);
-          break;
+        case 2: {
+          float dist = sqrt(normPx * normPx + normPy * normPy) * 2.0;
+          float ang = atan(normPy, normPx); // 2 argument atan is just the standard atan2
+          
+          cx = cos(ang) * (pow(2.0, dist * (-log2(min(scale, 1.0)) + 1.7)) - 1.0) * scale + coords.x;
+          cy = sin(ang) * (pow(2.0, dist * (-log2(min(scale, 1.0)) + 1.7)) - 1.0) * scale + coords.y;
+          } break;
       }
-    } else if (pallete == 3) {
-      vec3 color = getRainbowIterColor(iters);
       
-      outColor = vec4(color, 1.0);
+      float iters = getMandelIterctNormal(cx, cy);
+      
+      if (pallete >= 0 && pallete <= 2) {
+        float colorVal = min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
+        
+        float processedColorVal;
+        
+        if (iters < float(maxIters)) {
+          processedColorVal = colorVal / 256.0;
+        } else {
+          processedColorVal = 0.0;
+        }
+        
+        switch (pallete) {
+          case 0:
+            outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
+            break;
+          
+          case 1:
+            outColor = vec4(0.0, processedColorVal, 0.0, 1.0);
+            break;
+          
+          case 2:
+            outColor = vec4(processedColorVal, 0.0, 0.0, 1.0);
+            break;
+        }
+      } else if (pallete == 3) {
+        vec3 color = getRainbowIterColor(iters);
+        
+        outColor = vec4(color, 1.0);
+      }
+    }
+    
+    if (crashed > 0) {
+      if (doRest) {
+        outColor.r = outColor.r * 0.15f + 0.6f;
+        outColor.g = outColor.g * 0.15f + 0.3f;
+      }
+      
+      if (altNormPx > 0.795f - hashWrap(altNormPy * 3723.0f + altNormPx * 5421.0f) / 50.0f - pow(2.0f, altNormPy * 200.0f - 198.0f) / 10.0f && altNormPy > 0.8f - hashWrap(altNormPx * 3723.0f + altNormPy * 5421.0f) / 50.0f - pow(2.0f, altNormPx * 200.0f - 198.0f) / 10.0f) {
+        outColor.r = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x)))) / 65536.0f;
+        outColor.g = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x + gl_FragCoord.y * 329.0f + 35122.0f)))) / 65536.0f;
+        outColor.b = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x + gl_FragCoord.y * 329.0f + 91232.0f)))) / 65536.0f;
+      }
     }
   }
   
@@ -482,54 +535,97 @@ let mandelVertTestShader = `
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
     
-    float adjPx = (px - iResolution.x / 2.0);
-    float adjPy = (py - iResolution.y / 2.0);
+    float adjPx;
+    float adjPy;
     
-    float cx = coords.x;
-    float cy = coords.y;
+    bool doRest = true;
     
-    /*switch (logRender) {
-      case 0:
-        
-        break;
-    }*/
-    
-    float iters = getMandelIterct(
-      cx,
-      cy,
-      zcoords_basis.x + adjPx * zcoords_2ndx.x + adjPy * zcoords_2ndx.y,
-      zcoords_basis.y + adjPx * zcoords_2ndy.x + adjPy * zcoords_2ndy.y,
-      initialIterCount
-    );
-    
-    if (pallete >= 0 && pallete <= 2) {
-      float colorVal = min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
+    if (crashed > 0) {
+      float normPx = (px - iResolution.x / 2.0) / iResolution.y;
+      float normPy = (py - iResolution.y / 2.0) / iResolution.y;
       
-      float processedColorVal;
-      
-      if (iters < float(maxIters)) {
-        processedColorVal = colorVal / 256.0;
-      } else {
-        processedColorVal = 0.0;
+      if (normPx > 0.55f) {
+        outColor = vec4(0.5f + sin(gl_FragCoord.x * 1.5f) * 0.2f, 0.3f, 0.0f, 1.0f);
+        doRest = false;
       }
       
-      switch (pallete) {
+      if (doRest) {
+        normPx *= 0.9;
+        normPx += sin(normPy * 50.0f) * 0.02f;
+        normPy -= sin(normPx * 200.0f) * 0.005f;
+        normPx = -pow(-normPx + 0.5f, 1.3f) + 0.5f;
+      
+        adjPx = normPx * iResolution.y;
+        adjPy = normPy * iResolution.y;
+      }
+    } else {
+      adjPx = (px - iResolution.x / 2.0);
+      adjPy = (py - iResolution.y / 2.0);
+    }
+    
+    if (doRest) {
+      float cx = coords.x;
+      float cy = coords.y;
+      
+      /*switch (logRender) {
         case 0:
-          outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
+          
           break;
-        
-        case 1:
-          outColor = vec4(0.0, processedColorVal, 0.0, 1.0);
-          break;
-        
-        case 2:
-          outColor = vec4(processedColorVal, 0.0, 0.0, 1.0);
-          break;
-      }
-    } else if (pallete == 3) {
-      vec3 color = getRainbowIterColor(iters);
+      }*/
       
-      outColor = vec4(color, 1.0);
+      float iters = getMandelIterct(
+        cx,
+        cy,
+        zcoords_basis.x + adjPx * zcoords_2ndx.x + adjPy * zcoords_2ndx.y,
+        zcoords_basis.y + adjPx * zcoords_2ndy.x + adjPy * zcoords_2ndy.y,
+        initialIterCount
+      );
+      
+      if (pallete >= 0 && pallete <= 2) {
+        float colorVal = min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
+        
+        float processedColorVal;
+        
+        if (iters < float(maxIters)) {
+          processedColorVal = colorVal / 256.0;
+        } else {
+          processedColorVal = 0.0;
+        }
+        
+        switch (pallete) {
+          case 0:
+            outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
+            break;
+          
+          case 1:
+            outColor = vec4(0.0, processedColorVal, 0.0, 1.0);
+            break;
+          
+          case 2:
+            outColor = vec4(processedColorVal, 0.0, 0.0, 1.0);
+            break;
+        }
+      } else if (pallete == 3) {
+        vec3 color = getRainbowIterColor(iters);
+        
+        outColor = vec4(color, 1.0);
+      }
+    }
+    
+    if (crashed > 0) {
+      if (doRest) {
+        outColor.r = outColor.r * 0.15f + 0.6f;
+        outColor.g = outColor.g * 0.15f + 0.3f;
+      }
+      
+      float altNormPx = px / iResolution.x;
+      float altNormPy = py / iResolution.y;
+      
+      if (altNormPx > 0.795f - hashWrap(altNormPy * 3723.0f + altNormPx * 5421.0f) / 50.0f - pow(2.0f, altNormPy * 200.0f - 198.0f) / 10.0f && altNormPy > 0.8f - hashWrap(altNormPx * 3723.0f + altNormPy * 5421.0f) / 50.0f - pow(2.0f, altNormPx * 200.0f - 198.0f) / 10.0f) {
+        outColor.r = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x)))) / 65536.0f;
+        outColor.g = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x + gl_FragCoord.y * 329.0f + 35122.0f)))) / 65536.0f;
+        outColor.b = float(hash(hash(int(mod(coords.x, scale) / scale * 2412.0f + mod(coords.y, scale) / scale * 7134681.0f)) + hash(int(gl_FragCoord.x + gl_FragCoord.y * 329.0f + 91232.0f)))) / 65536.0f;
+      }
     }
   }
 `;

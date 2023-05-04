@@ -144,6 +144,8 @@ function ensureCanvasContext(ctxName) {
           doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
           artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
           
+          crashed: ctx.getUniformLocation(shaderProgram, 'crashed'),
+          
           noPerturbation: ctx.getUniformLocation(shaderProgram, 'noPerturbation'),
         },
       };

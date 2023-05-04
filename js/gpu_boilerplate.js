@@ -180,10 +180,10 @@ function drawGLScene(buffers, perturbationsNeeded) {
   ctx.uniform1i(shaderProgramInfo.uniformLocations.doArtificialBanding, Number(DO_ARTIFICIAL_BANDING));
   ctx.uniform1i(shaderProgramInfo.uniformLocations.artificialBandingFactor, ARTIFICIAL_BANDING_FACTOR);
   
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.crashed, Number(CRASHED));
+  
   if (RENDER_METHOD == 7) {
     setPerturbationVarsGL(X, Y, SCALE, canvas.height, perturbationsNeeded);
-  } else {
-    ctx.uniform1i(shaderProgramInfo.uniformLocations.crashed, Number(CRASHED));
   }
   
   let offset = 0;
