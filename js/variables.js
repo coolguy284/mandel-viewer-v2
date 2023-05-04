@@ -98,6 +98,7 @@ let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key wi
   44. add escape key to uncrash the mandelbrot set (easter egg 3)
   45. remarketing now closed or backed by escape key (easter egg 1) and now can only crash mandel when movement is unlocked (easter egg 3)
   46. add crashing to gpu perturbation mode (easter egg 3)
+  47. fix uniforms recalculation and buffer reinitialization every frame :skull:
   move crashing position / scale hash out of shader code and make it a uniform (easter egg 3)
   add crashing to other render modes (easter egg 3)
   proper ui size on mobile
@@ -105,6 +106,13 @@ let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key wi
   add log render and complete all features of perturbation mode
   add settings for artificial banding
   add sliding precision interval
+  better help
+  arrow keys or wasd and +-?
+  info page
+  feature matrix, vert is render modes horz is features
+  html lang = en
+  remove link type= since it's implied
+  make crashed mandel boundary on the right be based on screen absolute percentage instead of changeable normpx (which changes with aspect ratio)
   
   add escape key or reset button on settings to reset
   

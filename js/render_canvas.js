@@ -27,21 +27,24 @@ function ensureCanvasContext(ctxName) {
           
           return;
         }
-      }
       
-      // create shaders if not in render method 2
-      if (RENDER_METHOD == 3) {
-        shaderProgram = initShaderProgram();
-
-        shaderProgramInfo = {
-          attribLocations: {
-            vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
-          },
-          uniformLocations: {
-            projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-            modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-          },
-        };
+        // create shaders if not in render method 2
+        if (RENDER_METHOD == 3) {
+          shaderProgram = initShaderProgram();
+  
+          shaderProgramInfo = {
+            attribLocations: {
+              vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+            },
+            uniformLocations: {
+              projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+              modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            },
+          };
+        }
+        
+        // init gl buffers
+        webGLBuffers = initGLBuffers();
       }
       break;
     
@@ -61,38 +64,41 @@ function ensureCanvasContext(ctxName) {
           
           return;
         }
+      
+        // create shaders if not in render method 2
+        shaderProgram = initShaderProgram();
+        
+        shaderProgramInfo = {
+          attribLocations: {
+            vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+          },
+          uniformLocations: {
+            projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+            modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            
+            iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
+            
+            coords: ctx.getUniformLocation(shaderProgram, 'coords'),
+            scale: ctx.getUniformLocation(shaderProgram, 'scale'),
+            
+            pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
+            logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
+            smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
+            
+            maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
+            escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
+            
+            randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
+            doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
+            artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
+            
+            crashed: ctx.getUniformLocation(shaderProgram, 'crashed'),
+          },
+        };
+        
+        // init gl buffers
+        webGLBuffers = initGLBuffers();
       }
-      
-      // create shaders if not in render method 2
-      shaderProgram = initShaderProgram();
-      
-      shaderProgramInfo = {
-        attribLocations: {
-          vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
-        },
-        uniformLocations: {
-          projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-          modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-          
-          iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
-          
-          coords: ctx.getUniformLocation(shaderProgram, 'coords'),
-          scale: ctx.getUniformLocation(shaderProgram, 'scale'),
-          
-          pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
-          logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
-          smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
-          
-          maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
-          escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
-          
-          randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
-          doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
-          artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
-          
-          crashed: ctx.getUniformLocation(shaderProgram, 'crashed'),
-        },
-      };
       break;
     
     case 'webgl-real2':
@@ -111,44 +117,47 @@ function ensureCanvasContext(ctxName) {
           
           return;
         }
+      
+        // create shaders if not in render method 2
+        shaderProgram = initShaderProgram();
+        
+        shaderProgramInfo = {
+          attribLocations: {
+            vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+          },
+          uniformLocations: {
+            projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+            modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            
+            iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
+            
+            coords: ctx.getUniformLocation(shaderProgram, 'coords'),
+            zcoords_basis: ctx.getUniformLocation(shaderProgram, 'zcoords_basis'),
+            zcoords_2ndx: ctx.getUniformLocation(shaderProgram, 'zcoords_2ndx'),
+            zcoords_2ndy: ctx.getUniformLocation(shaderProgram, 'zcoords_2ndy'),
+            scale: ctx.getUniformLocation(shaderProgram, 'scale'),
+            initialIterCount: ctx.getUniformLocation(shaderProgram, 'initialIterCount'),
+            
+            pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
+            logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
+            smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
+            
+            maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
+            escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
+            
+            randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
+            doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
+            artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
+            
+            crashed: ctx.getUniformLocation(shaderProgram, 'crashed'),
+            
+            noPerturbation: ctx.getUniformLocation(shaderProgram, 'noPerturbation'),
+          },
+        };
+        
+        // init gl buffers
+        webGLBuffers = initGLBuffers();
       }
-      
-      // create shaders if not in render method 2
-      shaderProgram = initShaderProgram();
-      
-      shaderProgramInfo = {
-        attribLocations: {
-          vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
-        },
-        uniformLocations: {
-          projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-          modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-          
-          iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
-          
-          coords: ctx.getUniformLocation(shaderProgram, 'coords'),
-          zcoords_basis: ctx.getUniformLocation(shaderProgram, 'zcoords_basis'),
-          zcoords_2ndx: ctx.getUniformLocation(shaderProgram, 'zcoords_2ndx'),
-          zcoords_2ndy: ctx.getUniformLocation(shaderProgram, 'zcoords_2ndy'),
-          scale: ctx.getUniformLocation(shaderProgram, 'scale'),
-          initialIterCount: ctx.getUniformLocation(shaderProgram, 'initialIterCount'),
-          
-          pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
-          logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
-          smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
-          
-          maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
-          escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
-          
-          randomColorFuzzing: ctx.getUniformLocation(shaderProgram, 'randomColorFuzzing'),
-          doArtificialBanding: ctx.getUniformLocation(shaderProgram, 'doArtificialBanding'),
-          artificialBandingFactor: ctx.getUniformLocation(shaderProgram, 'artificialBandingFactor'),
-          
-          crashed: ctx.getUniformLocation(shaderProgram, 'crashed'),
-          
-          noPerturbation: ctx.getUniformLocation(shaderProgram, 'noPerturbation'),
-        },
-      };
       break;
   }
 }
@@ -259,9 +268,7 @@ function render() {
         return;
       }
       
-      let buffers = initGLBuffers();
-      
-      drawGLScene(buffers);
+      drawGLScene(webGLBuffers);
       
       } break;
     
@@ -274,9 +281,7 @@ function render() {
         return;
       }
       
-      let buffers = initGLBuffers();
-      
-      drawGLScene(buffers);
+      drawGLScene(webGLBuffers);
       
       } break;
     
@@ -317,9 +322,7 @@ function render() {
       let perturbationsNeeded = perturbationCalulcationsNeeded(true);
       usingPerturbation = perturbationsNeeded;
       
-      let buffers = initGLBuffers();
-      
-      drawGLScene(buffers, perturbationsNeeded);
+      drawGLScene(webGLBuffers, perturbationsNeeded);
       
       } break;
   }

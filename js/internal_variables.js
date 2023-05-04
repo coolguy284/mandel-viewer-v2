@@ -21,3 +21,4 @@ let crashEscapeVal = 0;
 let crashEscapeTimeout = null;
 let escapeKeyEnabled = true;
 let escapeKeyLockoutTimeout = null;
+let webGLBuffers;
