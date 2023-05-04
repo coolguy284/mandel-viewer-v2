@@ -8,6 +8,14 @@ function ensureCanvasContext(ctxName) {
         
         ctxType = '2d';
         ctx = canvas.getContext('2d');
+        
+        // help garbage collection if it is necessary (I am not sure so doing it anyway)
+        
+        if (shaderProgram) {
+          shaderProgram = null;
+          shaderProgramInfo = null;
+          webGLBuffers = null;
+        }
       }
       break;
     
@@ -41,10 +49,18 @@ function ensureCanvasContext(ctxName) {
               modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
             },
           };
-        }
         
-        // init gl buffers
-        webGLBuffers = initGLBuffers();
+          // init gl buffers
+          webGLBuffers = initGLBuffers();
+        } else {
+          // help garbage collection if it is necessary (I am not sure so doing it anyway)
+          
+          if (shaderProgram) {
+            shaderProgram = null;
+            shaderProgramInfo = null;
+            webGLBuffers = null;
+          }
+        }
       }
       break;
     

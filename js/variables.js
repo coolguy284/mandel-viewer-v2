@@ -99,6 +99,7 @@ let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key wi
   45. remarketing now closed or backed by escape key (easter egg 1) and now can only crash mandel when movement is unlocked (easter egg 3)
   46. add crashing to gpu perturbation mode (easter egg 3)
   47. fix uniforms recalculation and buffer reinitialization every frame :skull:
+  48. mild fix to previous fix
   move crashing position / scale hash out of shader code and make it a uniform (easter egg 3)
   add crashing to other render modes (easter egg 3)
   proper ui size on mobile
