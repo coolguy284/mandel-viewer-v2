@@ -100,6 +100,7 @@ let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key wi
   46. add crashing to gpu perturbation mode (easter egg 3)
   47. fix uniforms recalculation and buffer reinitialization every frame :skull:
   48. mild fix to previous fix
+  49. fix switch between gpu shader and gpu shader perturbation modes
   move crashing position / scale hash out of shader code and make it a uniform (easter egg 3)
   add crashing to other render modes (easter egg 3)
   proper ui size on mobile
@@ -114,6 +115,7 @@ let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key wi
   html lang = en
   remove link type= since it's implied
   make crashed mandel boundary on the right be based on screen absolute percentage instead of changeable normpx (which changes with aspect ratio)
+  find some good solution for precision loss when switching off of and back to the extreme precision modes
   
   add escape key or reset button on settings to reset
   

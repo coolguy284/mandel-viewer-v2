@@ -118,12 +118,12 @@ function ensureCanvasContext(ctxName) {
       break;
     
     case 'webgl-real2':
-      if (ctxType != 'webgl-real') {
+      if (ctxType != 'webgl-real2') {
         if (ctxType == '2d') {
           resetCanvas();
         }
         
-        ctxType = 'webgl-real';
+        ctxType = 'webgl-real2';
         ctx = canvas.getContext('webgl2');
         
         if (!ctx) {
