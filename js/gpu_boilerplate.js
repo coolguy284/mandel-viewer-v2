@@ -123,17 +123,9 @@ function setPositionAttribute(buffers) {
   ctx.enableVertexAttribArray(shaderProgramInfo.attribLocations.vertexPosition);
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
-function drawGLScene(buffers, perturbationsNeeded) {
-  ctx.clearColor(0.0, 0.0, 0.0, 0.0);
-  ctx.clearDepth(1.0);
-  ctx.enable(ctx.DEPTH_TEST);
-  ctx.depthFunc(ctx.LEQUAL);
-  
-  ctx.clear(ctx.COLOR_BUFFER_BUT | ctx.DEPTH_BUFFER_BIT);
-  
+function glResize(buffers) {
   let fieldOfView = (45 * Math.PI) / 180;
-  let aspect = ctx.canvas.clientWidth / ctx.canvas.clientHeight;
+  let aspect = 1.7;
   let zNear = 0.1;
   let zFar = 100.0;
   
@@ -160,6 +152,18 @@ function drawGLScene(buffers, perturbationsNeeded) {
     modelViewMatrix
   );
   ctx.uniform2fv(shaderProgramInfo.uniformLocations.iResolution, [canvas.width, canvas.height]);
+  
+  ctx.viewport(0, 0, canvas.width, canvas.height);
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+function drawGLScene(perturbationsNeeded) {
+  ctx.clearColor(0.0, 0.0, 0.0, 0.0);
+  ctx.clearDepth(1.0);
+  ctx.enable(ctx.DEPTH_TEST);
+  ctx.depthFunc(ctx.LEQUAL);
+  
+  ctx.clear(ctx.COLOR_BUFFER_BUT | ctx.DEPTH_BUFFER_BIT);
   
   if (RENDER_METHOD == 7) {
     ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [math.number(X), math.number(Y)]);

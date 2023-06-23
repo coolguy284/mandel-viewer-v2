@@ -1,8 +1,4 @@
 function resizeCanvas() {
-  if (ctxType?.startsWith('webgl')) {
-    resetCanvas();
-  }
-  
   let style = getComputedStyle(canvas);
   
   realCanvasWidth = parseInt(style.width);
@@ -10,4 +6,6 @@ function resizeCanvas() {
   
   canvas.width = Math.floor(realCanvasWidth * SUBPIXEL_SCALE);
   canvas.height = Math.floor(realCanvasHeight * SUBPIXEL_SCALE);
+  
+  if (ctxType?.startsWith('webgl')) glResize(webGLBuffers);
 }

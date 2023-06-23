@@ -52,6 +52,8 @@ function ensureCanvasContext(ctxName) {
         
           // init gl buffers
           webGLBuffers = initGLBuffers();
+          
+          glResize(webGLBuffers);
         } else {
           // help garbage collection if it is necessary (I am not sure so doing it anyway)
           
@@ -114,6 +116,8 @@ function ensureCanvasContext(ctxName) {
         
         // init gl buffers
         webGLBuffers = initGLBuffers();
+        
+        glResize(webGLBuffers);
       }
       break;
     
@@ -173,6 +177,8 @@ function ensureCanvasContext(ctxName) {
         
         // init gl buffers
         webGLBuffers = initGLBuffers();
+        
+        glResize(webGLBuffers);
       }
       break;
   }
@@ -284,7 +290,7 @@ function render() {
         return;
       }
       
-      drawGLScene(webGLBuffers);
+      drawGLScene();
       
       } break;
     
@@ -297,7 +303,7 @@ function render() {
         return;
       }
       
-      drawGLScene(webGLBuffers);
+      drawGLScene();
       
       } break;
     
@@ -338,7 +344,7 @@ function render() {
       let perturbationsNeeded = perturbationCalulcationsNeeded(true);
       usingPerturbation = perturbationsNeeded;
       
-      drawGLScene(webGLBuffers, perturbationsNeeded);
+      drawGLScene(perturbationsNeeded);
       
       } break;
   }

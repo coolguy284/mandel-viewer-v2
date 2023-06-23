@@ -15,20 +15,8 @@ window.addEventListener('load', () => {
 let webGLResizeTimeout;
 
 window.addEventListener('resize', () => {
-  if (ctxType.startsWith('webgl')) {
-    if (webGLResizeTimeout) {
-      clearTimeout(webGLResizeTimeout);
-    }
-    
-    webGLResizeTimeout = setTimeout(() => {
-      resizeCanvas();
-      render();
-      webGLResizeTimeout = null;
-    }, WEBGL_CANVAS_RESIZE_WAIT);
-  } else {
-    resizeCanvas();
-    render();
-  }
+  resizeCanvas();
+  render();
 });
 
 window.addEventListener('mousedown', e => {

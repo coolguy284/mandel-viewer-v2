@@ -105,6 +105,7 @@ let SORTING_ALGOS_CREDITATION_LETTER_DELAY = 30; // time in milliseconds for eac
   47. fix uniforms recalculation and buffer reinitialization every frame :skull:
   48. mild fix to previous fix
   49. fix switch between gpu shader and gpu shader perturbation modes
+  webgl-test should have 2 versions, test2 is only one with shaders, because render mode 2 doesn't need to have shaders load or use glresize at all (i think)
   move crashing position / scale hash out of shader code and make it a uniform (easter egg 3)
   add crashing to other render modes (easter egg 3)
   proper ui size on mobile
@@ -124,7 +125,6 @@ let SORTING_ALGOS_CREDITATION_LETTER_DELAY = 30; // time in milliseconds for eac
   add escape key or reset button on settings to reset
   
   use screenspace texture instead of perfectly positioned 3d space texture
-  proper webgl canvas resizing
   
   add multithreaded cpu mode
   
