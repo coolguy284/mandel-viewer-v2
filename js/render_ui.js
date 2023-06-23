@@ -22,15 +22,45 @@ function showCoordinates() {
   }
 }
 
+async function sortingAlgoReveal() {
+  sortingAlgosCreditationRunning = true;
+  
+  await new Promise(r => setTimeout(r, SORTING_ALGOS_CREDITATION_APPEAR_DELAY));
+  
+  if (audioState != 2) {
+    sortingAlgosCreditationRunning = false;
+    return;
+  }
+  
+  sorting_algos_attribution.style.display = '';
+  
+  for (let i = 0; i < sortingAlgosCreditation.length; i++) {
+    await new Promise(r => setTimeout(r, SORTING_ALGOS_CREDITATION_LETTER_DELAY));
+    
+    if (audioState != 2) {
+      sortingAlgosCreditationRunning = false;
+      return;
+    }
+    
+    sorting_algos_attribution.textContent += sortingAlgosCreditation[i];
+  }
+  
+  sortingAlgosCreditationRunning = false;
+}
+
 function handleAudioState() {
   if (CRASHED) {
     if (audioState == 0) {
-      audioState = Math.random() < 0.25 ? 2 : 1;
+      audioState = Math.random() < CRASH_SORTING_ALGOS_CHANCE ? 2 : 1;
       if (audioState == 1) {
         audioElement = new Audio('media/hum.mp3');
       } else {
         audioElement = new Audio('media/sorting algos.mp3');
+        if (sortingAlgosCreditationRunning == false) {
+          sortingAlgoReveal();
+        }
       }
+      audioElement.volume = CRASH_VOLUME;
       audioElement.loop = true;
       audioElement.play();
     }
@@ -39,6 +69,14 @@ function handleAudioState() {
       audioElement.pause();
       audioElement = null;
       audioState = 0;
+      if (sorting_algos_attribution.style.display == '') {
+        sorting_algos_attribution.style.display = 'none';
+        let selection = getSelection();
+        if (selection.anchorNode && (selection.anchorNode.id ?? selection.anchorNode.parentElement?.id == 'sorting_algos_attribution')) {
+          selection.removeAllRanges();
+        }
+        sorting_algos_attribution.textContent = '';
+      }
     }
   }
 }

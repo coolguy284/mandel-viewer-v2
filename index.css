@@ -51,6 +51,16 @@ html, body {
   font-size: min(4vh, 4vw);
 }
 
+#sorting_algos_attribution {
+  position: absolute;
+  left: 1vw;
+  top: 0;
+  color: white;
+  font-size: min(2vh, 2vw);
+  overflow-wrap: anywhere;
+  user-select: auto;
+}
+
 .popup {
   position: absolute;
   left: 5%;

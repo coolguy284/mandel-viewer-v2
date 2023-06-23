@@ -50,6 +50,10 @@ let CRASH_KEYS_DROP_DELAY = 100; // delay in milliseconds before crash threshold
 let CRASH_KEYS_ESCAPE_THRESHOLD = 3; // number of times escape key must be pressed to stop crash
 let CRASH_KEYS_ESCAPE_TIMEOUT = 1000; // timeout in milliseconds before escape cancellation of crashing is itself cancelled
 let CRASH_KEYS_ESCAPE_LOCKOUT = 2000; // time in milliseconds that escape key will be locked after successful escape-key based uncrash
+let CRASH_SORTING_ALGOS_CHANCE = 0.25; // chance in not percent that the crash will play sorting algos noise instead of regular noise
+let CRASH_VOLUME = 0.1; // volume of crash audio because audio clips are quite loud by default
+let SORTING_ALGOS_CREDITATION_APPEAR_DELAY = 1000; // time in milliseconds when crashed mandelbrot sorting algorythm version before sorting algorithm music will play (Timo Bingmann: 15 Sorting Algorithms in 6 Minutes (https://www.youtube.com/watch?v=kPRA0W1kECg))
+let SORTING_ALGOS_CREDITATION_LETTER_DELAY = 30; // time in milliseconds for each letter to appear
 
 /*
   1. simple canvas test

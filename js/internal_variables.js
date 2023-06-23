@@ -22,3 +22,5 @@ let crashEscapeTimeout = null;
 let escapeKeyEnabled = true;
 let escapeKeyLockoutTimeout = null;
 let webGLBuffers;
+let sortingAlgosCreditationRunning = false;
+let sortingAlgosCreditation = 'ERROR 503: Pulling audio from "Timo Bingmann: 15 Sorting Algorithms in 6 Minutes" (https://www.youtube.com/watch?v=kPRA0W1kECg)';
