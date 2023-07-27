@@ -136,6 +136,7 @@ let SORTING_ALGOS_CREDITATION_LETTER_DELAY = 30; // time in milliseconds for eac
     histogram coloring
     calculate average image divergence ratio
     add sliding iteration count interval
+    add toggle for ambient noise of the mandelbrot set, generated from iteration counts or something
 */
 
 if (PRESENTATION_MODE) {
