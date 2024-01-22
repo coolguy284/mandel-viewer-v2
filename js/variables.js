@@ -56,7 +56,7 @@ let SORTING_ALGOS_CREDITATION_APPEAR_DELAY = 1000; // time in milliseconds when 
 let SORTING_ALGOS_CREDITATION_LETTER_DELAY = 30; // time in milliseconds for each letter to appear
 
 /*
-  See todo.txt for features and todo
+  See features-and-todo.txt for features and todo
 */
 
 if (PRESENTATION_MODE) {
