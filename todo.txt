@@ -1,0 +1,5 @@
+fix black borders at some resolutions / aspect ratios
+make settings cog actually clickable on mobile
+scale canvas image by devicepixelratio
+add "take picture" button that creates a new shader canvas and renders image at full res or even 4k, saves image, then closes
+add credits page to credit the sorting algos mp3's
