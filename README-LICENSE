@@ -11,4 +11,5 @@ a different license, which can be found at https://unpkg.com/browse/mathjs@11.8.
 
 Note 3: The file "media/sorting algos.mp3" is the audio from the youtube video
 Timo Bingmann: 15 Sorting Algorithms in 6 Minutes, found at
-https://www.youtube.com/watch?v=kPRA0W1kECg (used for an easter egg).
+https://www.youtube.com/watch?v=kPRA0W1kECg (used for an easter egg). Therefore,
+the MIT+Unlicense license of this repository does not apply to this file.
