@@ -76,6 +76,7 @@ todo:
   bug when zooming after changing page zoom; zoom is relative to point outside screen (zooming in) or much closer to center (zooming out)
   bug on move and zoom; one frame delay on move and zoom before motion occurs, especially noticeable when render takes 1/5 second
   bug when switching between 2d and webgl canvases; deleting and recreating canvas, and opengl stuff, causes memory leak
+  high subpixel scale like 5 causes zooming in/out to occur not from location of cursor but from a different place instead
 
 extended todo:
   histogram coloring
