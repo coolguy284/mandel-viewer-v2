@@ -55,7 +55,7 @@ todo:
   add crashing to other render modes (easter egg 3)
   proper ui size on mobile
   localstorage support
-  add log render and complete all features of perturbation mode
+  complete all features of perturbation mode
   add settings for artificial banding
   add sliding precision interval
   better help
