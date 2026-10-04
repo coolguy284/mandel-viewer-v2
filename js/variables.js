@@ -17,6 +17,7 @@ let X = 0, Y = 0, SCALE = 4; // coordinates for mandelbrot set
 let PALLETE = 0; // 0 - blue, 1 - green, 2 - red, 3 - rainbow
 let LOG_RENDER = 0; // convert distance from center of screen to an exponential coordinate, allows most of mandelbrot zoom to be viewed at once; 0 - no log render, 1 - 50% of mandelbrot set zoom is visible, 2 - full mandelbrot set is always visible, albeit distorted
 let SMOOTH_ITERS = true; // calculate fractional iteration count and color smoothly
+let DITHERING = true; // enable dithering for even smoother color rendering
 
 let RENDER_METHOD = 7; // 0 - fillRect canvas test, 1 - js calculations and manual pixel setting, 2 - webgl test, 3 - webgl shader test, 4 - webgl shader, 5 - math.js calculations and manual pixel setting, 6 - math.js high precision for center, and perturbations calculated with js, 7 - math.js high precision for center, and perturbations calculated with shader
 let MAX_ITERS = 1024; // depth of mandelbrot calculation

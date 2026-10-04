@@ -171,6 +171,8 @@ function drawGLScene(perturbationsNeeded) {
   
   ctx.clear(ctx.COLOR_BUFFER_BUT | ctx.DEPTH_BUFFER_BIT);
   
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.colorDepth, PALLETE);
+  
   if (RENDER_METHOD == 7) {
     ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [math.number(X), math.number(Y)]);
     ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, math.number(SCALE));
@@ -182,6 +184,7 @@ function drawGLScene(perturbationsNeeded) {
   ctx.uniform1i(shaderProgramInfo.uniformLocations.pallete, PALLETE);
   ctx.uniform1i(shaderProgramInfo.uniformLocations.logRender, LOG_RENDER);
   ctx.uniform1i(shaderProgramInfo.uniformLocations.smoothIters, Number(SMOOTH_ITERS));
+  ctx.uniform1i(shaderProgramInfo.uniformLocations.dithering, Number(DITHERING));
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.maxIters, MAX_ITERS);
   ctx.uniform1f(shaderProgramInfo.uniformLocations.escapeRadius, ESCAPE_RADIUS);

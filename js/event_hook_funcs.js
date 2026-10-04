@@ -12,6 +12,7 @@ function settingInputsToSettingVars() {
   PALLETE = parseInt(settings_color_pallete.value);
   LOG_RENDER = parseInt(settings_log_render.value);
   SMOOTH_ITERS = settings_smooth_iteration_count.checked;
+  DITHERING = settings_dithering.checked;
   
   RENDER_METHOD = parseInt(settings_render_method.value);
   MAX_ITERS = parseInt(settings_max_iterations.value);
@@ -46,6 +47,7 @@ function settingVarsToSettingInputs() {
   settings_color_pallete.value = PALLETE;
   settings_log_render.value = LOG_RENDER;
   settings_smooth_iteration_count.checked = SMOOTH_ITERS;
+  settings_dithering.checked = DITHERING;
   
   settings_render_method.value = RENDER_METHOD;
   settings_max_iterations.value = MAX_ITERS;
