@@ -1,11 +1,9 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
 let mandelVertTestShader = `
   attribute vec4 aVertexPosition;
-  uniform mat4 uModelViewMatrix;
-  uniform mat4 uProjectionMatrix;
   
   void main() {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    gl_Position = aVertexPosition;
   }
 `, mandelFragTestShader = `
   void main() {
@@ -13,11 +11,9 @@ let mandelVertTestShader = `
   }
 `, mandelVertShader = `#version 300 es
   in vec4 aVertexPosition;
-  uniform mat4 uModelViewMatrix;
-  uniform mat4 uProjectionMatrix;
   
   void main() {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    gl_Position = aVertexPosition;
   }
 `, mandelFragShader = `#version 300 es
   precision highp float;
@@ -313,11 +309,9 @@ let mandelVertTestShader = `
   }
 `, mandelVertPerturbationShader = `#version 300 es
   in vec4 aVertexPosition;
-  uniform mat4 uModelViewMatrix;
-  uniform mat4 uProjectionMatrix;
 
   void main() {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    gl_Position = aVertexPosition;
   }
 `, mandelFragPerturbationShader = `#version 300 es
   precision highp float;

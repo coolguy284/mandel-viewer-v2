@@ -44,10 +44,7 @@ function ensureCanvasContext(ctxName) {
             attribLocations: {
               vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
             },
-            uniformLocations: {
-              projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-              modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-            },
+            uniformLocations: {},
           };
         
           // init gl buffers
@@ -91,9 +88,6 @@ function ensureCanvasContext(ctxName) {
             vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
           },
           uniformLocations: {
-            projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-            modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-            
             iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
             colorQuantizations: ctx.getUniformLocation(shaderProgram, 'colorQuantizations'),
             
@@ -147,9 +141,6 @@ function ensureCanvasContext(ctxName) {
             vertexPosition: ctx.getAttribLocation(shaderProgram, 'aVertexPosition'),
           },
           uniformLocations: {
-            projectionMatrix: ctx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-            modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-            
             iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
             colorQuantizations: ctx.getUniformLocation(shaderProgram, 'colorQuantizations'),
             

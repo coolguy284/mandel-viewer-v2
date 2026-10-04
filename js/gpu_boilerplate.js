@@ -130,33 +130,10 @@ function setPositionAttribute(buffers) {
 }
 
 function glResize(buffers) {
-  let fieldOfView = (45 * Math.PI) / 180;
-  let aspect = 1.0; // aspect ratio of 3d view (width/height)
-  let zNear = 0.1;
-  let zFar = 100.0;
-  
-  let projectionMatrix = mat4.create();
-  
-  mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-  
-  let modelViewMatrix = mat4.create();
-  
-  mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -2.413]);
-  
   setPositionAttribute(buffers);
   
   ctx.useProgram(shaderProgram);
   
-  ctx.uniformMatrix4fv(
-    shaderProgramInfo.uniformLocations.projectionMatrix,
-    false,
-    projectionMatrix
-  );
-  ctx.uniformMatrix4fv(
-    shaderProgramInfo.uniformLocations.modelViewMatrix,
-    false,
-    modelViewMatrix
-  );
   ctx.uniform2fv(shaderProgramInfo.uniformLocations.iResolution, [canvas.width, canvas.height]);
   
   ctx.viewport(0, 0, canvas.width, canvas.height);
