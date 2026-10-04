@@ -1,0 +1,5 @@
+easter egg 1: remarketing menu
+  typing in the konami code "up, up, down, down, left, right, left, right, b, a, enter" will open up a menu of marketing terms
+easter egg 2: self-reflection
+easter egg 3: crashing mandelbrot set
+  spamming the keyboard will "crash" the mandelbrot set, spam again to uncrash
