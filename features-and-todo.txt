@@ -73,6 +73,8 @@ todo:
   
   add multithreaded cpu mode
   
+  add float-float mode for shader; or even float-float-float
+  
   bug when zooming after changing page zoom; zoom is relative to point outside screen (zooming in) or much closer to center (zooming out)
   bug on move and zoom; one frame delay on move and zoom before motion occurs, especially noticeable when render takes 1/5 second
   bug when switching between 2d and webgl canvases; deleting and recreating canvas, and opengl stuff, causes memory leak
@@ -85,7 +87,6 @@ extended todo:
   add toggle for ambient noise of the mandelbrot set, generated from iteration counts or something
 
 extra:
-  fix black borders at some resolutions / aspect ratios
   make settings cog actually clickable on mobile
   scale canvas image by devicepixelratio
   add "take picture" button that creates a new shader canvas and renders image at full res or even 4k, saves image, then closes
