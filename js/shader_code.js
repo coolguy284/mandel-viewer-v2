@@ -181,6 +181,63 @@ let mandelVertTestShader = `
     }
   }
   
+  vec4 getColorFromIters(float iters, int i) {
+    if (pallete >= 0 && pallete <= 2) {
+      float processedColorVal;
+      
+      if (iters < float(maxIters)) {
+        float colorVal;
+        
+        if (randomColorFuzzing > 0 && smoothIters == 0) {
+          colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
+        } else {
+          colorVal = solidColorPalleteColor(iters);
+        }
+        
+        if (randomColorFuzzing > 0 && smoothIters > 0) {
+          processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
+        } else {
+          processedColorVal = colorVal / 256.0;
+        }
+      } else {
+        processedColorVal = 0.0;
+      }
+      
+      switch (pallete) {
+        case 0:
+          return vec4(0.0, 0.0, processedColorVal, 1.0);
+          break;
+        
+        case 1:
+          return vec4(0.0, processedColorVal, 0.0, 1.0);
+          break;
+        
+        case 2:
+          return vec4(processedColorVal, 0.0, 0.0, 1.0);
+          break;
+      }
+    } else if (pallete == 3) {
+      vec3 color;
+      
+      if (randomColorFuzzing > 0 && smoothIters == 0) {
+        color = getRainbowIterColor(float(randomRound(iters, i)));
+      } else {
+        color = getRainbowIterColor(iters);
+      }
+      
+      if (randomColorFuzzing > 0 && smoothIters > 0) {
+        return vec4(
+          ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
+          ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
+          ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
+          1.0
+        );
+      } else {
+        return vec4(color, 1.0);
+      }
+    }
+  }
+  
   void main() {
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
@@ -235,60 +292,7 @@ let mandelVertTestShader = `
       
       float iters = getMandelIterct(cx, cy);
       
-      if (pallete >= 0 && pallete <= 2) {
-        float processedColorVal;
-        
-        if (iters < float(maxIters)) {
-          float colorVal;
-          
-          if (randomColorFuzzing > 0 && smoothIters == 0) {
-            colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
-          } else {
-            colorVal = solidColorPalleteColor(iters);
-          }
-          
-          if (randomColorFuzzing > 0 && smoothIters > 0) {
-            processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
-          } else {
-            processedColorVal = colorVal / 256.0;
-          }
-        } else {
-          processedColorVal = 0.0;
-        }
-        
-        switch (pallete) {
-          case 0:
-            outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
-            break;
-          
-          case 1:
-            outColor = vec4(0.0, processedColorVal, 0.0, 1.0);
-            break;
-          
-          case 2:
-            outColor = vec4(processedColorVal, 0.0, 0.0, 1.0);
-            break;
-        }
-      } else if (pallete == 3) {
-        vec3 color;
-        
-        if (randomColorFuzzing > 0 && smoothIters == 0) {
-          color = getRainbowIterColor(float(randomRound(iters, i)));
-        } else {
-          color = getRainbowIterColor(iters);
-        }
-        
-        if (randomColorFuzzing > 0 && smoothIters > 0) {
-          outColor = vec4(
-            ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
-            ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
-            ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
-            1.0
-          );
-        } else {
-          outColor = vec4(color, 1.0);
-        }
-      }
+      outColor = getColorFromIters(iters, i);
     }
     
     if (crashed > 0) {
@@ -482,7 +486,64 @@ let mandelVertTestShader = `
       }
     }
   }
-    
+  
+  vec4 getColorFromIters(float iters, int i) {
+    if (pallete >= 0 && pallete <= 2) {
+      float processedColorVal;
+      
+      if (iters < float(maxIters)) {
+        float colorVal;
+        
+        if (randomColorFuzzing > 0 && smoothIters == 0) {
+          colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
+        } else {
+          colorVal = solidColorPalleteColor(iters);
+        }
+        
+        if (randomColorFuzzing > 0 && smoothIters > 0) {
+          processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
+        } else {
+          processedColorVal = colorVal / 256.0;
+        }
+      } else {
+        processedColorVal = 0.0;
+      }
+      
+      switch (pallete) {
+        case 0:
+          return vec4(0.0, 0.0, processedColorVal, 1.0);
+          break;
+        
+        case 1:
+          return vec4(0.0, processedColorVal, 0.0, 1.0);
+          break;
+        
+        case 2:
+          return vec4(processedColorVal, 0.0, 0.0, 1.0);
+          break;
+      }
+    } else if (pallete == 3) {
+      vec3 color;
+      
+      if (randomColorFuzzing > 0 && smoothIters == 0) {
+        color = getRainbowIterColor(float(randomRound(iters, i)));
+      } else {
+        color = getRainbowIterColor(iters);
+      }
+      
+      if (randomColorFuzzing > 0 && smoothIters > 0) {
+        return vec4(
+          ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
+          ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
+          ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
+          1.0
+        );
+      } else {
+        return vec4(color, 1.0);
+      }
+    }
+  }
+  
   void mainNormal() {
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
@@ -540,60 +601,7 @@ let mandelVertTestShader = `
       
       float iters = getMandelIterctNormal(cx, cy);
       
-      if (pallete >= 0 && pallete <= 2) {
-        float processedColorVal;
-        
-        if (iters < float(maxIters)) {
-          float colorVal;
-          
-          if (randomColorFuzzing > 0 && smoothIters == 0) {
-            colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
-          } else {
-            colorVal = solidColorPalleteColor(iters);
-          }
-          
-          if (randomColorFuzzing > 0 && smoothIters > 0) {
-            processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
-          } else {
-            processedColorVal = colorVal / 256.0;
-          }
-        } else {
-          processedColorVal = 0.0;
-        }
-        
-        switch (pallete) {
-          case 0:
-            outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
-            break;
-          
-          case 1:
-            outColor = vec4(0.0, processedColorVal, 0.0, 1.0);
-            break;
-          
-          case 2:
-            outColor = vec4(processedColorVal, 0.0, 0.0, 1.0);
-            break;
-        }
-      } else if (pallete == 3) {
-        vec3 color;
-        
-        if (randomColorFuzzing > 0 && smoothIters == 0) {
-          color = getRainbowIterColor(float(randomRound(iters, i)));
-        } else {
-          color = getRainbowIterColor(iters);
-        }
-        
-        if (randomColorFuzzing > 0 && smoothIters > 0) {
-          outColor = vec4(
-            ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
-            ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
-            ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
-            1.0
-          );
-        } else {
-          outColor = vec4(color, 1.0);
-        }
-      }
+      outColor = getColorFromIters(iters, i);
     }
     
     if (crashed > 0) {
@@ -658,6 +666,8 @@ let mandelVertTestShader = `
     float adjPx;
     float adjPy;
     
+    int i = int(py * iResolution.x + px);
+    
     bool doRest = true;
     
     if (crashed > 0) {
@@ -701,60 +711,7 @@ let mandelVertTestShader = `
         initialIterCount
       );
       
-      if (pallete >= 0 && pallete <= 2) {
-        float processedColorVal;
-        
-        if (iters < float(maxIters)) {
-          float colorVal;
-          
-          if (randomColorFuzzing > 0 && smoothIters == 0) {
-            colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
-          } else {
-            colorVal = solidColorPalleteColor(iters);
-          }
-          
-          if (randomColorFuzzing > 0 && smoothIters > 0) {
-            processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
-          } else {
-            processedColorVal = colorVal / 256.0;
-          }
-        } else {
-          processedColorVal = 0.0;
-        }
-        
-        switch (pallete) {
-          case 0:
-            outColor = vec4(0.0, 0.0, processedColorVal, 1.0);
-            break;
-          
-          case 1:
-            outColor = vec4(0.0, processedColorVal, 0.0, 1.0);
-            break;
-          
-          case 2:
-            outColor = vec4(processedColorVal, 0.0, 0.0, 1.0);
-            break;
-        }
-      } else if (pallete == 3) {
-        vec3 color;
-        
-        if (randomColorFuzzing > 0 && smoothIters == 0) {
-          color = getRainbowIterColor(float(randomRound(iters, i)));
-        } else {
-          color = getRainbowIterColor(iters);
-        }
-        
-        if (randomColorFuzzing > 0 && smoothIters > 0) {
-          outColor = vec4(
-            ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
-            ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
-            ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
-            1.0
-          );
-        } else {
-          outColor = vec4(color, 1.0);
-        }
-      }
+      outColor = getColorFromIters(iters, i);
     }
     
     if (crashed > 0) {
