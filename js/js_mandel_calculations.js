@@ -108,7 +108,7 @@ function getMandelIterct(cx, cy) {
     iterCount++;
   }
   
-  if (SMOOTH_ITERS && iterCount < MAX_ITERS) {
+  if ((SMOOTH_ITERS || RANDOM_COLOR_FUZZING) && iterCount < MAX_ITERS) {
     let log_zn = Math.log(zx2 + zy2) / 2.0;
     let nu = Math.log(log_zn / Math.log(2.0)) / Math.log(2.0);
     
@@ -118,26 +118,41 @@ function getMandelIterct(cx, cy) {
   return iterCount;
 }
 
+function solidColorPalleteVal(iters) {
+  return Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 256);
+}
+
+function ditherColorVal(colorVal, i) {
+  if (DO_ARTIFICIAL_BANDING) {
+    if (RANDOM_COLOR_FUZZING) {
+      return randomRound(colorVal / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
+    } else {
+      return Math.round(colorVal / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
+    }
+  } else {
+    if (RANDOM_COLOR_FUZZING && SMOOTH_ITERS) {
+      return randomRound(colorVal, i);
+    } else {
+      // special code path for more efficient rendering
+      return colorVal;
+    }
+  }
+}
+
 function fillMandelPixelArray_setPallete(iters, pixelData, i) {
   if (PALLETE >= 0 && PALLETE <= 2) {
     let processedColorVal;
     
     if (iters < MAX_ITERS) {
-      let colorVal = Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 256);
+      let colorVal;
       
-      if (DO_ARTIFICIAL_BANDING) {
-        if (RANDOM_COLOR_FUZZING) {
-          processedColorVal = randomRound(colorVal / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-        } else {
-          processedColorVal = Math.round(colorVal / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-        }
+      if (RANDOM_COLOR_FUZZING && !SMOOTH_ITERS) {
+        colorVal = solidColorPalleteVal(randomRound(iters, i));
       } else {
-        if (RANDOM_COLOR_FUZZING) {
-          processedColorVal = randomRound(colorVal, i);
-        } else {
-          processedColorVal = colorVal; // special code path for more efficient rendering
-        }
+        colorVal = solidColorPalleteVal(iters);
       }
+      
+      processedColorVal = ditherColorVal(colorVal, i);
     } else {
       processedColorVal = 0;
     }
@@ -148,30 +163,17 @@ function fillMandelPixelArray_setPallete(iters, pixelData, i) {
       case 2: pixelData.data[i] = processedColorVal; break;
     }
   } else if (PALLETE == 3) {
-    let color = getRainbowIterColor(iters);
+    let color;
     
-    if (DO_ARTIFICIAL_BANDING) {
-      if (RANDOM_COLOR_FUZZING) {
-        pixelData.data[i] = randomRound(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-        pixelData.data[i + 1] = randomRound(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-        pixelData.data[i + 2] = randomRound(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR, i) * ARTIFICIAL_BANDING_FACTOR;
-      } else {
-        pixelData.data[i] = Math.round(color[0] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-        pixelData.data[i + 1] = Math.round(color[1] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-        pixelData.data[i + 2] = Math.round(color[2] * 256 / ARTIFICIAL_BANDING_FACTOR) * ARTIFICIAL_BANDING_FACTOR;
-      }
+    if (RANDOM_COLOR_FUZZING && !SMOOTH_ITERS) {
+      color = getRainbowIterColor(randomRound(iters, i));
     } else {
-      if (RANDOM_COLOR_FUZZING) {
-        pixelData.data[i] = randomRound(color[0] * 256, i);
-        pixelData.data[i + 1] = randomRound(color[1] * 256, i);
-        pixelData.data[i + 2] = randomRound(color[2] * 256, i);
-      } else {
-        // special code path for more efficient rendering
-        pixelData.data[i] = color[0] * 256;
-        pixelData.data[i + 1] = color[1] * 256;
-        pixelData.data[i + 2] = color[2] * 256;
-      }
+      color = getRainbowIterColor(iters);
     }
+    
+    pixelData.data[i] = ditherColorVal(color[0] * 256, i);
+    pixelData.data[i + 1] = ditherColorVal(color[1] * 256, i);
+    pixelData.data[i + 2] = ditherColorVal(color[2] * 256, i);
   }
   
   pixelData.data[i + 3] = 255;
