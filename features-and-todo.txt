@@ -62,7 +62,6 @@ todo:
   arrow keys or wasd and +-?
   info page
   feature matrix, vert is render modes horz is features
-  remove link type= since it's implied
   make crashed mandel boundary on the right be based on screen absolute percentage instead of changeable normpx (which changes with aspect ratio)
   find some good solution for precision loss when switching off of and back to the extreme precision modes
   
