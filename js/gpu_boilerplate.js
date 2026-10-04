@@ -171,7 +171,7 @@ function drawGLScene(perturbationsNeeded) {
   
   ctx.clear(ctx.COLOR_BUFFER_BUT | ctx.DEPTH_BUFFER_BIT);
   
-  ctx.uniform1i(shaderProgramInfo.uniformLocations.colorQuantizations, 2 ** Math.round(screen.colorDepth / 3));
+  ctx.uniform1f(shaderProgramInfo.uniformLocations.colorQuantizations, 2 ** Math.round(screen.colorDepth / 3));
   
   if (RENDER_METHOD == 7) {
     ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [math.number(X), math.number(Y)]);

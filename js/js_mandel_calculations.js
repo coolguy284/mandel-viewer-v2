@@ -1,3 +1,14 @@
+// https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+// A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
+function hash(x) {
+  x = x + (x << 10) << 0;
+  x ^= x >> 6;
+  x = x + (x << 3) << 0;
+  x ^= x >> 11;
+  x = x + (x << 15) << 0;
+  return (x & 0xffff) / 0x10000;
+}
+
 // randomly rounds up or down, biased toward the side the number is closer to
 function randomRound(val, i) {
   if (Number.isInteger(val)) {
@@ -13,17 +24,6 @@ function randomRound(val, i) {
   } else {
     return top;
   }
-}
-
-// https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-// A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
-function hash(x) {
-  x = x + (x << 10) << 0;
-  x ^= x >> 6;
-  x = x + (x << 3) << 0;
-  x ^= x >> 11;
-  x = x + (x << 15) << 0;
-  return (x & 0xffff) / 0x10000;
 }
 
 function getRainbowIntIterColor(iters) {
@@ -118,7 +118,7 @@ function getMandelIterct(cx, cy) {
   return iterCount;
 }
 
-function solidColorPalleteVal(iters) {
+function solidColorPalleteColor(iters) {
   return Math.min(-Math.cos((iters * 6 / 256) * Math.PI * 2) * 88 + 148, 256);
 }
 
@@ -147,12 +147,16 @@ function fillMandelPixelArray_setPallete(iters, pixelData, i) {
       let colorVal;
       
       if (RANDOM_COLOR_FUZZING && !SMOOTH_ITERS) {
-        colorVal = solidColorPalleteVal(randomRound(iters, i));
+        colorVal = solidColorPalleteColor(randomRound(iters, i));
       } else {
-        colorVal = solidColorPalleteVal(iters);
+        colorVal = solidColorPalleteColor(iters);
       }
       
-      processedColorVal = ditherColorVal(colorVal, i);
+      if (RANDOM_COLOR_FUZZING && SMOOTH_ITERS) {
+        processedColorVal = ditherColorVal(colorVal, i);
+      } else {
+        processedColorVal = colorVal;
+      }
     } else {
       processedColorVal = 0;
     }
@@ -171,9 +175,15 @@ function fillMandelPixelArray_setPallete(iters, pixelData, i) {
       color = getRainbowIterColor(iters);
     }
     
-    pixelData.data[i] = ditherColorVal(color[0] * 256, i);
-    pixelData.data[i + 1] = ditherColorVal(color[1] * 256, i);
-    pixelData.data[i + 2] = ditherColorVal(color[2] * 256, i);
+    if (RANDOM_COLOR_FUZZING && SMOOTH_ITERS) {
+      pixelData.data[i] = ditherColorVal(color[0] * 256, i);
+      pixelData.data[i + 1] = ditherColorVal(color[1] * 256, i);
+      pixelData.data[i + 2] = ditherColorVal(color[2] * 256, i);
+    } else {
+      pixelData.data[i] = color[0] * 256;
+      pixelData.data[i + 1] = color[1] * 256;
+      pixelData.data[i + 2] = color[2] * 256;
+    }
   }
   
   pixelData.data[i + 3] = 255;

@@ -23,7 +23,7 @@ let mandelVertTestShader = `
   precision highp float;
   
   uniform vec2 iResolution;
-  uniform int colorQuantizations;
+  uniform float colorQuantizations;
   
   uniform vec2 coords;
   uniform float scale;
@@ -56,6 +56,18 @@ let mandelVertTestShader = `
   
   float hashWrap(float x) {
     return float(hash(int(x))) / 65536.0f;
+  }
+  
+  int randomRound(float val, int i) {
+    int bottom = int(floor(val));
+    int top = int(ceil(val));
+    float fraction = val - float(bottom);
+    
+    if (float(hash(i)) / 65536.0f > fraction) {
+      return bottom;
+    } else {
+      return top;
+    }
   }
   
   vec3 getRainbowIntIterColor(int iters) {
@@ -138,7 +150,7 @@ let mandelVertTestShader = `
     
     float iterCountFloat = float(iterCount);
     
-    if (smoothIters > 0 && iterCount < maxIters) {
+    if ((smoothIters > 0 || randomColorFuzzing > 0) && iterCount < maxIters) {
       float log_zn = log(zx2 + zy2) / 2.0;
       float nu = log(log_zn / log(2.0)) / log(2.0);
       
@@ -148,12 +160,35 @@ let mandelVertTestShader = `
     return iterCountFloat;
   }
   
+  float solidColorPalleteColor(float iters) {
+    return min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
+  }
+  
+  float ditherColorVal(float colorVal, int i) {
+    if (doArtificialBanding > 0) {
+      if (randomColorFuzzing > 0) {
+        return float(randomRound(colorVal / float(artificialBandingFactor), i)) * float(artificialBandingFactor);
+      } else {
+        return float(round(colorVal / float(artificialBandingFactor))) * float(artificialBandingFactor);
+      }
+    } else {
+      if (randomColorFuzzing > 0 && smoothIters > 0) {
+        return float(randomRound(colorVal, i));
+      } else {
+        // special code path for more efficient rendering
+        return colorVal;
+      }
+    }
+  }
+  
   void main() {
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
     
     float normPx = (px - iResolution.x / 2.0) / iResolution.y;
     float normPy = (py - iResolution.y / 2.0) / iResolution.y;
+    
+    int i = int(py * iResolution.x + px);
     
     bool doRest = true;
     
@@ -201,12 +236,22 @@ let mandelVertTestShader = `
       float iters = getMandelIterct(cx, cy);
       
       if (pallete >= 0 && pallete <= 2) {
-        float colorVal = min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
-        
         float processedColorVal;
         
         if (iters < float(maxIters)) {
-          processedColorVal = colorVal / 256.0;
+          float colorVal;
+          
+          if (randomColorFuzzing > 0 && smoothIters == 0) {
+            colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
+          } else {
+            colorVal = solidColorPalleteColor(iters);
+          }
+          
+          if (randomColorFuzzing > 0 && smoothIters > 0) {
+            processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
+          } else {
+            processedColorVal = colorVal / 256.0;
+          }
         } else {
           processedColorVal = 0.0;
         }
@@ -225,9 +270,24 @@ let mandelVertTestShader = `
             break;
         }
       } else if (pallete == 3) {
-        vec3 color = getRainbowIterColor(iters);
+        vec3 color;
         
-        outColor = vec4(color, 1.0);
+        if (randomColorFuzzing > 0 && smoothIters == 0) {
+          color = getRainbowIterColor(float(randomRound(iters, i)));
+        } else {
+          color = getRainbowIterColor(iters);
+        }
+        
+        if (randomColorFuzzing > 0 && smoothIters > 0) {
+          outColor = vec4(
+            ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
+            ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
+            ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
+            1.0
+          );
+        } else {
+          outColor = vec4(color, 1.0);
+        }
       }
     }
     
@@ -259,7 +319,7 @@ let mandelVertTestShader = `
   precision highp float;
   
   uniform vec2 iResolution;
-  uniform int colorQuantizations;
+  uniform float colorQuantizations;
   
   uniform vec2 coords;
   uniform vec2 zcoords_basis;
@@ -298,6 +358,18 @@ let mandelVertTestShader = `
   
   float hashWrap(float x) {
     return float(hash(int(x))) / 65536.0f;
+  }
+  
+  int randomRound(float val, int i) {
+    int bottom = int(floor(val));
+    int top = int(ceil(val));
+    float fraction = val - float(bottom);
+    
+    if (float(hash(i)) / 65536.0f > fraction) {
+      return bottom;
+    } else {
+      return top;
+    }
   }
   
   vec3 getRainbowIntIterColor(int iters) {
@@ -380,7 +452,7 @@ let mandelVertTestShader = `
     
     float iterCountFloat = float(iterCount);
     
-    if (smoothIters > 0 && iterCount < maxIters) {
+    if ((smoothIters > 0 || randomColorFuzzing > 0) && iterCount < maxIters) {
       float log_zn = log(zx2 + zy2) / 2.0;
       float nu = log(log_zn / log(2.0)) / log(2.0);
       
@@ -390,6 +462,27 @@ let mandelVertTestShader = `
     return iterCountFloat;
   }
   
+  float solidColorPalleteColor(float iters) {
+    return min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
+  }
+  
+  float ditherColorVal(float colorVal, int i) {
+    if (doArtificialBanding > 0) {
+      if (randomColorFuzzing > 0) {
+        return float(randomRound(colorVal / float(artificialBandingFactor), i)) * float(artificialBandingFactor);
+      } else {
+        return float(round(colorVal / float(artificialBandingFactor))) * float(artificialBandingFactor);
+      }
+    } else {
+      if (randomColorFuzzing > 0 && smoothIters > 0) {
+        return float(randomRound(colorVal, i));
+      } else {
+        // special code path for more efficient rendering
+        return colorVal;
+      }
+    }
+  }
+    
   void mainNormal() {
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
@@ -399,6 +492,8 @@ let mandelVertTestShader = `
     
     float normPx = (px - iResolution.x / 2.0) / iResolution.y;
     float normPy = (py - iResolution.y / 2.0) / iResolution.y;
+    
+    int i = int(py * iResolution.x + px);
     
     bool doRest = true;
     
@@ -446,12 +541,22 @@ let mandelVertTestShader = `
       float iters = getMandelIterctNormal(cx, cy);
       
       if (pallete >= 0 && pallete <= 2) {
-        float colorVal = min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
-        
         float processedColorVal;
         
         if (iters < float(maxIters)) {
-          processedColorVal = colorVal / 256.0;
+          float colorVal;
+          
+          if (randomColorFuzzing > 0 && smoothIters == 0) {
+            colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
+          } else {
+            colorVal = solidColorPalleteColor(iters);
+          }
+          
+          if (randomColorFuzzing > 0 && smoothIters > 0) {
+            processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
+          } else {
+            processedColorVal = colorVal / 256.0;
+          }
         } else {
           processedColorVal = 0.0;
         }
@@ -470,9 +575,24 @@ let mandelVertTestShader = `
             break;
         }
       } else if (pallete == 3) {
-        vec3 color = getRainbowIterColor(iters);
+        vec3 color;
         
-        outColor = vec4(color, 1.0);
+        if (randomColorFuzzing > 0 && smoothIters == 0) {
+          color = getRainbowIterColor(float(randomRound(iters, i)));
+        } else {
+          color = getRainbowIterColor(iters);
+        }
+        
+        if (randomColorFuzzing > 0 && smoothIters > 0) {
+          outColor = vec4(
+            ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
+            ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
+            ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
+            1.0
+          );
+        } else {
+          outColor = vec4(color, 1.0);
+        }
       }
     }
     
@@ -582,12 +702,22 @@ let mandelVertTestShader = `
       );
       
       if (pallete >= 0 && pallete <= 2) {
-        float colorVal = min(-cos((iters * 6.0 / 256.0) * 3.14159265358979 * 2.0) * 88.0 + 148.0, 256.0);
-        
         float processedColorVal;
         
         if (iters < float(maxIters)) {
-          processedColorVal = colorVal / 256.0;
+          float colorVal;
+          
+          if (randomColorFuzzing > 0 && smoothIters == 0) {
+            colorVal = solidColorPalleteColor(float(randomRound(iters, i)));
+          } else {
+            colorVal = solidColorPalleteColor(iters);
+          }
+          
+          if (randomColorFuzzing > 0 && smoothIters > 0) {
+            processedColorVal = ditherColorVal(colorVal * (colorQuantizations / 256.0), i) / colorQuantizations;
+          } else {
+            processedColorVal = colorVal / 256.0;
+          }
         } else {
           processedColorVal = 0.0;
         }
@@ -606,9 +736,24 @@ let mandelVertTestShader = `
             break;
         }
       } else if (pallete == 3) {
-        vec3 color = getRainbowIterColor(iters);
+        vec3 color;
         
-        outColor = vec4(color, 1.0);
+        if (randomColorFuzzing > 0 && smoothIters == 0) {
+          color = getRainbowIterColor(float(randomRound(iters, i)));
+        } else {
+          color = getRainbowIterColor(iters);
+        }
+        
+        if (randomColorFuzzing > 0 && smoothIters > 0) {
+          outColor = vec4(
+            ditherColorVal(color.x * colorQuantizations, i) / colorQuantizations,
+            ditherColorVal(color.y * colorQuantizations, i) / colorQuantizations,
+            ditherColorVal(color.z * colorQuantizations, i) / colorQuantizations,
+            1.0
+          );
+        } else {
+          outColor = vec4(color, 1.0);
+        }
       }
     }
     
