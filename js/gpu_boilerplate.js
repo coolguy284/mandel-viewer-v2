@@ -139,24 +139,8 @@ function glResize(buffers) {
   ctx.viewport(0, 0, canvas.width, canvas.height);
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
-function drawGLScene(perturbationsNeeded) {
-  ctx.clearColor(0.0, 0.0, 0.0, 0.0);
-  ctx.clearDepth(1.0);
-  ctx.enable(ctx.DEPTH_TEST);
-  ctx.depthFunc(ctx.LEQUAL);
-  
-  ctx.clear(ctx.COLOR_BUFFER_BUT | ctx.DEPTH_BUFFER_BIT);
-  
+function glSettingsUpdate() {
   ctx.uniform1f(shaderProgramInfo.uniformLocations.colorQuantizations, 2 ** Math.round(screen.colorDepth / 3));
-  
-  if (RENDER_METHOD == 7) {
-    ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [math.number(X), math.number(Y)]);
-    ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, math.number(SCALE));
-  } else {
-    ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [X, Y]);
-    ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, SCALE);
-  }
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.pallete, PALLETE);
   ctx.uniform1i(shaderProgramInfo.uniformLocations.logRender, LOG_RENDER);
@@ -170,6 +154,24 @@ function drawGLScene(perturbationsNeeded) {
   ctx.uniform1i(shaderProgramInfo.uniformLocations.artificialBandingFactor, ARTIFICIAL_BANDING_FACTOR);
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.crashed, Number(CRASHED));
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+function drawGLScene(perturbationsNeeded) {
+  ctx.clearColor(0.0, 0.0, 0.0, 0.0);
+  ctx.clearDepth(1.0);
+  ctx.enable(ctx.DEPTH_TEST);
+  ctx.depthFunc(ctx.LEQUAL);
+  
+  ctx.clear(ctx.COLOR_BUFFER_BUT | ctx.DEPTH_BUFFER_BIT);
+  
+  if (RENDER_METHOD == 7) {
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [math.number(X), math.number(Y)]);
+    ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, math.number(SCALE));
+  } else {
+    ctx.uniform2fv(shaderProgramInfo.uniformLocations.coords, [X, Y]);
+    ctx.uniform1f(shaderProgramInfo.uniformLocations.scale, SCALE);
+  }
   
   if (RENDER_METHOD == 7) {
     setPerturbationVarsGL(X, Y, SCALE, canvas.height, perturbationsNeeded);

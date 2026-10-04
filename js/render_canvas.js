@@ -51,6 +51,7 @@ function ensureCanvasContext(ctxName) {
           webGLBuffers = initGLBuffers();
           
           glResize(webGLBuffers);
+          glSettingsUpdate();
         } else {
           // help garbage collection if it is necessary (I am not sure so doing it anyway)
           
@@ -113,6 +114,7 @@ function ensureCanvasContext(ctxName) {
         webGLBuffers = initGLBuffers();
         
         glResize(webGLBuffers);
+        glSettingsUpdate();
       }
       break;
     
@@ -172,6 +174,7 @@ function ensureCanvasContext(ctxName) {
         webGLBuffers = initGLBuffers();
         
         glResize(webGLBuffers);
+        glSettingsUpdate();
       }
       break;
   }

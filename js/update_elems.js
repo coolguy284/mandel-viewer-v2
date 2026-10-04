@@ -7,5 +7,7 @@ function resizeCanvas() {
   canvas.width = Math.floor(realCanvasWidth * SUBPIXEL_SCALE);
   canvas.height = Math.floor(realCanvasHeight * SUBPIXEL_SCALE);
   
-  if (ctxType?.startsWith('webgl')) glResize(webGLBuffers);
+  if (ctxType?.startsWith('webgl')) {
+    glResize(webGLBuffers);
+  }
 }

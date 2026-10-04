@@ -50,8 +50,6 @@ done:
   49. fix switch between gpu shader and gpu shader perturbation modes
 
 todo:
-  dont set uniform constants on every draw only on change
-  
   webgl-test should have 2 versions, test2 is only one with shaders, because render mode 2 doesn't need to have shaders load or use glresize at all (i think)
   move crashing position / scale hash out of shader code and make it a uniform (easter egg 3)
   add crashing to other render modes (easter egg 3)

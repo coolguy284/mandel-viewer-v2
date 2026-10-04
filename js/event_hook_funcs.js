@@ -23,6 +23,7 @@ function settingInputsToSettingVars() {
     targetScale = SCALE;
   }
   
+  glSettingsUpdate();
   render();
 }
 
@@ -143,10 +144,12 @@ function calculateMovementUnlocked(showVar) {
 
 function toggleCrashed() {
   CRASHED = !CRASHED;
+  glSettingsUpdate();
   render();
 }
 
 function stopCrash() {
   CRASHED = false;
+  glSettingsUpdate();
   render();
 }
