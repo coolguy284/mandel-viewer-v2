@@ -95,7 +95,7 @@ function ensureCanvasContext(ctxName) {
             modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
             
             iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
-            colorDepth: ctx.getUniformLocation(shaderProgram, 'colorDepth'),
+            colorQuantizations: ctx.getUniformLocation(shaderProgram, 'colorQuantizations'),
             
             coords: ctx.getUniformLocation(shaderProgram, 'coords'),
             scale: ctx.getUniformLocation(shaderProgram, 'scale'),
@@ -103,7 +103,6 @@ function ensureCanvasContext(ctxName) {
             pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
             logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
             smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
-            dithering: ctx.getUniformLocation(shaderProgram, 'dithering'),
             
             maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
             escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),
@@ -152,7 +151,7 @@ function ensureCanvasContext(ctxName) {
             modelViewMatrix: ctx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
             
             iResolution: ctx.getUniformLocation(shaderProgram, 'iResolution'),
-            colorDepth: ctx.getUniformLocation(shaderProgram, 'colorDepth'),
+            colorQuantizations: ctx.getUniformLocation(shaderProgram, 'colorQuantizations'),
             
             coords: ctx.getUniformLocation(shaderProgram, 'coords'),
             zcoords_basis: ctx.getUniformLocation(shaderProgram, 'zcoords_basis'),
@@ -164,7 +163,6 @@ function ensureCanvasContext(ctxName) {
             pallete: ctx.getUniformLocation(shaderProgram, 'pallete'),
             logRender: ctx.getUniformLocation(shaderProgram, 'logRender'),
             smoothIters: ctx.getUniformLocation(shaderProgram, 'smoothIters'),
-            dithering: ctx.getUniformLocation(shaderProgram, 'dithering'),
             
             maxIters: ctx.getUniformLocation(shaderProgram, 'maxIters'),
             escapeRadius: ctx.getUniformLocation(shaderProgram, 'escapeRadius'),

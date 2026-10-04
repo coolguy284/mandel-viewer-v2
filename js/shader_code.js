@@ -23,7 +23,7 @@ let mandelVertTestShader = `
   precision highp float;
   
   uniform vec2 iResolution;
-  uniform int colorDepth;
+  uniform int colorQuantizations;
   
   uniform vec2 coords;
   uniform float scale;
@@ -31,7 +31,6 @@ let mandelVertTestShader = `
   uniform int pallete;
   uniform int logRender;
   uniform int smoothIters;
-  uniform int dithering;
   
   uniform int maxIters;
   uniform float escapeRadius;
@@ -150,11 +149,6 @@ let mandelVertTestShader = `
   }
   
   void main() {
-    if (dithering == 1) {
-      outColor = vec4(gl_FragCoord.x / iResolution.x, 1.0, 0.0, 1.0);
-      return;
-    }
-    
     float px = gl_FragCoord.x;
     float py = gl_FragCoord.y;
     
@@ -265,7 +259,7 @@ let mandelVertTestShader = `
   precision highp float;
   
   uniform vec2 iResolution;
-  uniform int colorDepth;
+  uniform int colorQuantizations;
   
   uniform vec2 coords;
   uniform vec2 zcoords_basis;
@@ -277,7 +271,6 @@ let mandelVertTestShader = `
   uniform int pallete;
   uniform int logRender;
   uniform int smoothIters;
-  uniform int dithering;
   
   uniform int maxIters;
   uniform float escapeRadius;
@@ -534,11 +527,6 @@ let mandelVertTestShader = `
   }
   
   void main() {
-    if (dithering == 1) {
-      outColor = vec4(gl_FragCoord.x / iResolution.x, 1.0, 0.0, 1.0);
-      return;
-    }
-      
     if (noPerturbation > 0) {
       mainNormal();
       return;
