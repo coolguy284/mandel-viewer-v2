@@ -1,7 +1,11 @@
 // only takes input in the form of bignumbers
 function MathJSGetMandelArrIterct(arr, thresholdDist) {
+  if (arr.length < 2) {
+    throw new Error(`perturbation analysis needs at least 2 points, but ${arr.length} were given`);
+  }
+  
   // create copy of input array as working copy
-  arr = arr.map(x => ({
+  const workingArr = arr.map(x => ({
     cx : x.cx,
     cy: x.cy,
     
@@ -9,70 +13,44 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
     zy: math.bignumber('0'),
     zx2: math.bignumber('0'),
     zy2: math.bignumber('0'),
-    loopExited: false,
-    beyondPerturbation: false,
-    
-    iters: null,
   }));
   
-  for (let entry of arr) {
-    let qt1 = math.subtract(entry.cx, math.bignumber('0.25'));
-    let q = math.add(math.multiply(qt1, qt1), math.multiply(entry.cy, entry.cy));
-    if (math.smaller(math.multiply(q, math.add(q, math.subtract(entry.cx, math.bignumber('0.25')))), math.multiply(math.multiply(math.bignumber('0.25'), entry.cy), entry.cy))) {
-      entry.loopExited = true;
-      entry.iters = MAX_ITERS;
-      continue;
+  let iters = 0;
+  
+  while (iters < MAX_ITERS) {
+    let stopCalculation = false;
+    
+    for (let i = 0; i < workingArr.length; i++) {
+      const entry = workingArr[i];
+      
+      if (math.largerEq(math.add(math.square(math.subtract(entry.zx, initialEntry.zx)), math.square(math.subtract(entry.zy, initialEntry.zy))), thresholdDist)) {
+        stopCalculation = true;
+        break;
+      }
     }
     
-    let t1 = math.add(entry.cx, 1.0);
-    if (math.smaller(math.add(math.multiply(t1, t1), math.multiply(entry.cy, entry.cy)), math.bignumber(math.fraction(1, 16)))) {
-      entry.loopExited = true;
-      entry.iters = MAX_ITERS;
-      continue;
+    if (stopCalculation) {
+      break;
     }
-  }
-  
-  let workingArr = [...arr];
-  
-  while (workingArr.length > 0) {
-    for (let i = workingArr.length - 1; i >= 0; i--) {
-      let entry = workingArr[i];
+    
+    iters++;
+    
+    for (let i = 0; i < workingArr.length; i++) {
+      const entry = workingArr[i];
       
       entry.zy = math.add(math.multiply(math.add(entry.zx, entry.zx), entry.zy), entry.cy);
       entry.zx = math.add(math.subtract(entry.zx2, entry.zy2), entry.cx);
       entry.zx2 = math.multiply(entry.zx, entry.zx);
       entry.zy2 = math.multiply(entry.zy, entry.zy);
-      
-      entry.iters++;
-      
-      if (math.largerEq(math.add(entry.zx2, entry.zy2), ESCAPE_RADIUS) || entry.iters >= MAX_ITERS) {
-        entry.loopExited = true;
-        workingArr.splice(i, 1);
-      }
     }
     
-    if (workingArr.length > 1) {
-      let initialEntry = workingArr[0];
-      
-      let stopCalculation = false;
-      
-      for (let i = workingArr.length - 1; i >= 0; i--) {
-        let entry = workingArr[i];
-        
-        if (math.largerEq(math.add(math.square(math.subtract(entry.zx, initialEntry.zx)), math.square(math.subtract(entry.zy, initialEntry.zy))), thresholdDist)) {
-          entry.beyondPerturbation = true;
-          stopCalculation = true;
-          break;
-        }
-      }
-      
-      if (stopCalculation) {
-        break;
-      }
-    }
+    const initialEntry = workingArr[0];
   }
   
-  return arr;
+  return {
+    points: arr,
+    iters,
+  };
 }
 
 /*
@@ -175,23 +153,31 @@ function getPerturbationVars(x, y, scale, height, useFloat) {
     { cx: x, cy: math.add(y, pixelScale) }, // y basis vector
   ];
   
-  let divergedZValues = MathJSGetMandelArrIterct(inputPoints, useFloat ? PERTURBATION_THRESHOLD_FLOAT_SQ : PERTURBATION_THRESHOLD_DOUBLE_SQ);
+  const {
+    points: divergedZValues,
+    iters: startingIters,
+  } =
+    MathJSGetMandelArrIterct(
+      inputPoints,
+      useFloat ?
+        PERTURBATION_THRESHOLD_FLOAT_SQ :
+        PERTURBATION_THRESHOLD_DOUBLE_SQ,
+    );
   
-  let cx = math.number(x), cy = math.number(y);
+  const cx = math.number(x), cy = math.number(y);
   
-  let zx_basis = math.number(divergedZValues[0].zx),
+  const zx_basis = math.number(divergedZValues[0].zx),
     zy_basis = math.number(divergedZValues[0].zy),
     zx_x = math.number(math.subtract(divergedZValues[1].zx, divergedZValues[0].zx)),
     zx_y = math.number(math.subtract(divergedZValues[1].zy, divergedZValues[0].zy)),
     zy_x = math.number(math.subtract(divergedZValues[2].zx, divergedZValues[0].zx)),
     zy_y = math.number(math.subtract(divergedZValues[2].zy, divergedZValues[0].zy));
   
-  let startingIters = divergedZValues[0].iters;
-  
   return [cx, cy, zx_basis, zy_basis, zx_x, zx_y, zy_x, zy_y, startingIters];
 }
 
 function MathJS_PerturbJS_FillMandelPixelArray(x, y, scale, width, height, pixelData) {
+  console.log([x, y, scale, width, height]);
   let [ cx, cy, zx_basis, zy_basis, zx_x, zx_y, zy_x, zy_y, startingIters ] = getPerturbationVars(x, y, scale, height, false);
   
   for (var i = 0; i < width * height * 4; i += 4) {
