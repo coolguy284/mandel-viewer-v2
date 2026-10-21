@@ -54,15 +54,14 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
 }
 
 /*
-(() => {
-  let cx = math.bignumber("-0.1505104236164761");
-  let cy = math.bignumber("0.902984621017129");
-  let scale = math.bignumber("1e-10");
+window.calcPoints = iters => {
+  const cx = math.bignumber('-0.1505104236164761');
+  const cy = math.bignumber('0.902984621017129');
+  const scale = math.bignumber('1e-10');
   
-  let pixelScale = math.divide(scale, canvas.height);
-  let pixelScale2 = math.multiply(pixelScale, 2);
+  const pixelScale = math.divide(scale, canvas.height);
   
-  let input = [
+  const input = [
     {
       cx,
       cy,
@@ -84,13 +83,13 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
   
   const oldMaxIters = MAX_ITERS;
   
-  MAX_ITERS = 1;
+  MAX_ITERS = iters;
   
-  let output = MathJSGetMandelArrIterct(input, PERTURBATION_THRESHOLD_FLOAT_SQ);
+  const output = MathJSGetMandelArrIterct(input, PERTURBATION_THRESHOLD_FLOAT_SQ).points;
   
   MAX_ITERS = oldMaxIters;
   
-  let latexFormat = x => {
+  const latexFormat = x => {
     x = x.toString();
     if (x.includes('e')) {
       x = x.split('e');
@@ -100,8 +99,14 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
     }
   };
   
-  console.log(`\\left[${output.map(x => `\\left(${latexFormat(Number(x.zx.toString())-Number(output[0].zx.toString()))},${latexFormat(Number(x.zy.toString())-Number(output[0].zy.toString()))}\\right)`)}\\right]\n\\left[${output.map(x => `\\left(${latexFormat(math.subtract(x.cx,output[0].cx))},${latexFormat(math.subtract(x.cy,output[0].cy))}\\right)`)}\\right]`);
-})();
+  console.log(
+    `\\left[${
+      output.map(x => `\\left(${latexFormat(Number(x.zx.toString())-Number(output[0].zx.toString()))},${latexFormat(Number(x.zy.toString())-Number(output[0].zy.toString()))}\\right)`)
+    }\\right]\n\\left[${
+      output.map(x => `\\left(${latexFormat(math.subtract(x.cx,output[0].cx))},${latexFormat(math.subtract(x.cy,output[0].cy))}\\right)`)
+    }\\right]`
+  );
+};
 */
 
 // https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
