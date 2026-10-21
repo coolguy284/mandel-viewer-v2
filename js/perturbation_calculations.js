@@ -18,6 +18,8 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
   let iters = 0;
   
   while (iters < MAX_ITERS) {
+    const initialEntry = workingArr[0];
+    
     let stopCalculation = false;
     
     for (let i = 0; i < workingArr.length; i++) {
@@ -43,12 +45,10 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
       entry.zx2 = math.multiply(entry.zx, entry.zx);
       entry.zy2 = math.multiply(entry.zy, entry.zy);
     }
-    
-    const initialEntry = workingArr[0];
   }
   
   return {
-    points: arr,
+    points: workingArr,
     iters,
   };
 }
