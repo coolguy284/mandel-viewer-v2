@@ -67,8 +67,6 @@ todo:
   
   add escape key or reset button on settings to reset
   
-  use screenspace texture instead of perfectly positioned 3d space texture
-  
   add multithreaded cpu mode
   
   add float-float mode for shader; or even float-float-float

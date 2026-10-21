@@ -55,9 +55,9 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
 
 /*
 (() => {
-  let cx = math.bignumber("-1.296355138173036216552967546899076797655272531353041380433865418");
-  let cy = math.bignumber("0.441851605735196601077911017224272712708313976456904128704533679");
-  let scale = math.bignumber("4.372718980588188203377448666486052544169107365814442416209028654e-18");
+  let cx = math.bignumber("-0.1505104236164761");
+  let cy = math.bignumber("0.902984621017129");
+  let scale = math.bignumber("1e-10");
   
   let pixelScale = math.divide(scale, canvas.height);
   let pixelScale2 = math.multiply(pixelScale, 2);
@@ -67,33 +67,28 @@ function MathJSGetMandelArrIterct(arr, thresholdDist) {
       cx,
       cy,
     },
-    {
-      cx: math.add(cx, pixelScale2),
-      cy,
-    },
-    {
-      cx,
-      cy: math.add(cy, pixelScale2),
-    },
-    {
-      cx: math.add(cx, pixelScale),
-      cy,
-    },
-    {
-      cx,
-      cy: math.add(cy, pixelScale),
-    },
-    {
-      cx: math.subtract(cx, pixelScale),
-      cy,
-    },
-    {
-      cx,
-      cy: math.subtract(cy, pixelScale),
-    },
   ];
   
+  for (let j = -5; j <= 5; j++) {
+    for (let i = -5; i <= 5; i++) {
+      if (i == 0 && j == 0) {
+        continue;
+      }
+      
+      input.push({
+        cx: math.add(cx, math.multiply(pixelScale, i)),
+        cy: math.add(cy, math.multiply(pixelScale, j)),
+      });
+    }
+  }
+  
+  const oldMaxIters = MAX_ITERS;
+  
+  MAX_ITERS = 1;
+  
   let output = MathJSGetMandelArrIterct(input, PERTURBATION_THRESHOLD_FLOAT_SQ);
+  
+  MAX_ITERS = oldMaxIters;
   
   let latexFormat = x => {
     x = x.toString();
