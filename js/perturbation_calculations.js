@@ -85,7 +85,7 @@ window.calcPoints = iters => {
   
   MAX_ITERS = iters;
   
-  const output = MathJSGetMandelArrIterct(input, PERTURBATION_THRESHOLD_FLOAT_SQ).points;
+  const { points: output, iters: returnedIters } = MathJSGetMandelArrIterct(input, PERTURBATION_THRESHOLD_FLOAT_SQ);
   
   MAX_ITERS = oldMaxIters;
   
@@ -104,7 +104,7 @@ window.calcPoints = iters => {
       output.map(x => `\\left(${latexFormat(Number(x.zx.toString())-Number(output[0].zx.toString()))},${latexFormat(Number(x.zy.toString())-Number(output[0].zy.toString()))}\\right)`)
     }\\right]\n\\left[${
       output.map(x => `\\left(${latexFormat(math.subtract(x.cx,output[0].cx))},${latexFormat(math.subtract(x.cy,output[0].cy))}\\right)`)
-    }\\right]`
+    }\\right]\n${returnedIters}`
   );
 };
 */
