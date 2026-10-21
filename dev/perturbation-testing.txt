@@ -1,0 +1,7 @@
+ground truth black (use this as perturbation center)
+x -0.1505104235997334
+y 0.902984621275152
+
+ground truth not black
+x -0.15051042301228226
+y 0.9029846212431746
