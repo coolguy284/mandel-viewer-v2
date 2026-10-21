@@ -23,6 +23,7 @@ function settingInputsToSettingVars() {
     targetScale = SCALE;
   }
   
+  ensureCtxAndVars();
   glSettingsUpdate();
   render();
 }
