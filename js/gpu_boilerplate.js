@@ -140,6 +140,10 @@ function glResize(buffers) {
 }
 
 function glSettingsUpdate() {
+  if (RENDER_METHOD != 4 && RENDER_METHOD != 7) {
+    return;
+  }
+  
   ctx.uniform1f(shaderProgramInfo.uniformLocations.colorQuantizations, 2 ** Math.round(screen.colorDepth / 3));
   
   ctx.uniform1i(shaderProgramInfo.uniformLocations.pallete, PALLETE);
